@@ -25,11 +25,10 @@ export default function TabsLayout() {
             <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255, 255, 255, 0.92)" }]} />
           ),
         tabBarLabelStyle: { fontWeight: "600", fontSize: 12 },
-        tabBarInactiveTintColor: "#64748B",
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,

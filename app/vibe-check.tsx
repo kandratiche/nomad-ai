@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
-import { router, useNavigation } from "expo-router";
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from "react-native";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LightScreen } from "../components/ui/LightScreen";
-import { GlassCardOnLight } from "../components/ui/GlassCard";
-import { BodyText, CaptionText } from "../components/ui/ThemedText";
+import { BodyText } from "../components/ui/ThemedText";
 import { INTERESTS } from "../constants/mockData";
 
 const INTEREST_IMAGES: Record<string, string> = {
@@ -34,32 +33,28 @@ export default function VibeCheckScreen() {
     });
   };
 
-  const navigation = useNavigation();
-
   const handleContinue = () => {
-    router.replace("/(tabs)");
+    router.replace("/home");
   };
 
   return (
     <LightScreen>
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 56, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <TouchableOpacity onPress={() => router.push("/city-select")} style={{width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(241,245,249,0.95)", alignItems: "center", justifyContent: "center" }}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity onPress={() => router.push("/city-select")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color="#0F172A" />
         </TouchableOpacity>
-        <View style={{ marginTop: 10, height: 4, backgroundColor: "#E2E8F0", borderRadius: 2, marginBottom: 24, overflow: "hidden" }}>
-          <View style={{ width: "33%", height: "100%", backgroundColor: "#2DD4BF", borderRadius: 2 }} />
+
+        <View style={styles.progressBar}>
+          <View style={styles.progressFilled} />
         </View>
 
-        <Text style={{ fontFamily: "Montserrat_700Bold", fontSize: 28, color: "#0F172A", marginBottom: 4 }}>WHAT MOVES</Text>
-        <Text style={{ fontFamily: "Montserrat_700Bold", fontSize: 28, color: "#64748B", marginBottom: 12 }}>YOU?</Text>
-        <BodyText style={{ marginBottom: 24, color: "#475569", fontSize: 15 }}>
+        <Text style={styles.title}>WHAT MOVES</Text>
+        <Text style={styles.subtitle}>YOU?</Text>
+        <BodyText style={styles.description}>
           Select your interests so Nomad AI can craft your perfect adventure.
         </BodyText>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 32 }}>
+        <View style={styles.grid}>
           {INTERESTS.map((item) => {
             const isSelected = selected.has(item.id);
             const imageUrl = INTEREST_IMAGES[item.id] || INTEREST_IMAGES.local;
@@ -68,25 +63,16 @@ export default function VibeCheckScreen() {
                 key={item.id}
                 onPress={() => toggle(item.id)}
                 activeOpacity={0.9}
-                style={{ width: "47%" }}
+                style={styles.gridItem}
               >
-                <View
-                  style={{
-                    height: 120,
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    borderWidth: isSelected ? 2 : 0,
-                    borderColor: "#2DD4BF",
-                    position: "relative",
-                  }}
-                >
-                  <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-                  <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)" }} />
-                  <Text style={{ position: "absolute", left: 12, right: 12, bottom: 12, color: "#FFF", fontWeight: "700", fontSize: 14 }} numberOfLines={2}>
+                <View style={[styles.card, isSelected && styles.cardSelected]}>
+                  <Image source={{ uri: imageUrl }} style={styles.cardImage} resizeMode="cover" />
+                  <View style={styles.overlay} />
+                  <Text style={styles.cardText} numberOfLines={2}>
                     {item.label.toUpperCase()}
                   </Text>
                   {isSelected && (
-                    <View style={{ position: "absolute", top: 10, right: 10, width: 24, height: 24, borderRadius: 12, backgroundColor: "#2DD4BF", alignItems: "center", justifyContent: "center" }}>
+                    <View style={styles.checkmark}>
                       <Ionicons name="checkmark" size={16} color="#FFF" />
                     </View>
                   )}
@@ -96,21 +82,126 @@ export default function VibeCheckScreen() {
           })}
         </View>
 
-        <TouchableOpacity
-          onPress={handleContinue}
-          style={{
-            backgroundColor: "#0F172A",
-            paddingVertical: 16,
-            borderRadius: 24,
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "#FFF", fontWeight: "700", fontSize: 16, marginRight: 8 }}>LET'S GO</Text>
-          <Text style={{ fontSize: 16 }}>🚀</Text>
+        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+          <Text style={styles.continueText}>LET'S GO</Text>
+          <Text style={styles.rocket}>🚀</Text>
         </TouchableOpacity>
       </ScrollView>
     </LightScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 24,
+    paddingTop: 56,
+    paddingBottom: 40,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(241,245,249,0.95)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 2,
+    marginBottom: 24,
+    overflow: "hidden",
+  },
+  progressFilled: {
+    width: "33%",
+    height: "100%",
+    backgroundColor: "#2DD4BF",
+    borderRadius: 2,
+  },
+  title: {
+    fontFamily: "Montserrat_700Bold",
+    fontSize: 28,
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontFamily: "Montserrat_700Bold",
+    fontSize: 28,
+    color: "#64748B",
+    marginBottom: 12,
+  },
+  description: {
+    marginBottom: 24,
+    color: "#475569",
+    fontSize: 15,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 32,
+  },
+  gridItem: {
+    width: "47%",
+  },
+  card: {
+    height: 120,
+    borderRadius: 16,
+    overflow: "hidden",
+    position: "relative",
+  },
+  cardSelected: {
+    borderWidth: 2,
+    borderColor: "#2DD4BF",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  overlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  cardText: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    bottom: 12,
+    color: "#FFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  checkmark: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#2DD4BF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  continueButton: {
+    backgroundColor: "#0F172A",
+    paddingVertical: 16,
+    borderRadius: 24,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  continueText: {
+    color: "#FFF",
+    fontWeight: "700",
+    fontSize: 16,
+    marginRight: 8,
+  },
+  rocket: {
+    fontSize: 16,
+  },
+});

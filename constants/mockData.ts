@@ -2,7 +2,7 @@ import type { City, Guide, Place, Itinerary, Interest, TrendingExperience } from
 
 export const CITIES: City[] = [
   {
-    id: "astana",
+    id: "Astana",
     name: "Astana",
     country: "Kazakhstan",
     safetyScore: 92,
@@ -10,7 +10,7 @@ export const CITIES: City[] = [
     imageUrl: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800",
   },
   {
-    id: "almaty",
+    id: "Almaty",
     name: "Almaty",
     country: "Kazakhstan",
     safetyScore: 89,
@@ -18,7 +18,7 @@ export const CITIES: City[] = [
     imageUrl: "https://images.unsplash.com/photo-1547448415-e9f5b28e570d?w=800",
   },
   {
-    id: "aktau",
+    id: "Aktau",
     name: "Aktau",
     country: "Kazakhstan",
     safetyScore: 87,

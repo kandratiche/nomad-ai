@@ -1,21 +1,73 @@
 import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { StyleSheet } from "react-native";
+import { Alert } from "react-native";
+import supabase from "@/lib/supabaseClient";
+import { AuthContext } from "@/context/authContext";
+import { CaptionText } from "@/components/ui/ThemedText";
+
 
 export default function UserRegister() {
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const [showPassword, setShowPassword] = React.useState(false);
+    const [email, setEmail] = React.useState<string>("");
+    const [password, setPassword] = React.useState<string>("");
+    const [showPassword, setShowPassword] = React.useState<boolean>(false);
+    const [loading, setLoading] = React.useState<boolean>(false);
+    const [isError, setIsError] = React.useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = React.useState<string>("");
 
-    const handleLogin = () => {
-        console.log("Logging in");
+    const { user } = useContext(AuthContext);
+    
+    useEffect(() => {
+        if (user) {
+            router.replace("/home");
+        }
+    }, [user]);
 
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Error", "Please fill all fields");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                setIsError(true);
+                setErrorMessage(error.message);
+                return;
+            }
+
+            if (data?.user) {
+                console.log("Logged in:", data.user.email);
+
+                if (Platform.OS === "web") {
+                    alert("Login successful!");
+                    router.replace("/city-select");
+                } else {
+                    Alert.alert("Success", "Login successful!", [
+                        { text: "OK", onPress: () => router.replace("/city-select") },
+                    ]);
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Error", "Something went wrong");
+        } finally {
+            setLoading(false);
+        };
     };
+
 
     return (
         <LightScreen>
@@ -71,12 +123,22 @@ export default function UserRegister() {
                             </TouchableOpacity>
                         </GlassCardOnLight>
                     </View>
+                    { isError && (
+                        <View style={styles.fieldContainer}>
+                            <CaptionText style={styles.errorText}>
+                                {errorMessage}
+                            </CaptionText>
+                        </View>
+                    )}
                     <View style={styles.fieldContainer}>
-                        <TouchableOpacity 
-                            style={styles.button}
-                            onPress={handleLogin} 
+                       <TouchableOpacity 
+                            style={[styles.button, loading && { opacity: 0.5 }]}
+                            onPress={handleLogin}
+                            disabled={loading}
                         >
-                            <Text style={styles.buttonText}>Login</Text>
+                            <Text style={styles.buttonText}>
+                                {loading ? "Logging in..." : "Login"}
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -130,7 +192,7 @@ const styles = StyleSheet.create({
     },
     fieldContainer: {
         marginBottom: 8,
-        width: 350,
+        width: "90%",
     },
     screenContainer: {
         flex: 1,
@@ -151,5 +213,11 @@ const styles = StyleSheet.create({
         color: "#FFF",
         fontSize: 16,
         fontWeight: "600",
+    },
+    errorText: {
+        color: "#EF4444",
+        fontSize: 14,
+        fontWeight: "400",
+        marginTop: 4,
     }
 });

@@ -1,181 +1,195 @@
 import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, TextInput, TouchableOpacity, Platform, Alert } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { StyleSheet } from "react-native";
 import supabase from "@/lib/supabaseClient";
+import { AuthContext } from "@/context/authContext";
 
 export default function UserRegister() {
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const [confirmPassword, setConfirmPassword] = React.useState("");
-    const [showPassword, setShowPassword] = React.useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-    const [loading, setLoading] = React.useState(false);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-    const handleRegister = async () => {
-        console.log("Registering user...");
-        if (!email || !password || !confirmPassword) {
-            Alert.alert("Error", "Please fill all fields");
-            return;
-        }
+  const { user, setUser } = useContext(AuthContext);
 
-        if (password !== confirmPassword) {
-            Alert.alert("Error", "Passwords do not match");
-            return;
-        }
+const handleRegister = async () => {
+  if (!email || !password || !confirmPassword || !name) {
+    Alert.alert("Error", "Please fill all fields");
+    return;
+  }
 
-        if (password.length < 6) {
-            Alert.alert("Error", "Password must be at least 6 characters");
-            return;
-        }
+  if (password !== confirmPassword) {
+    Alert.alert("Error", "Passwords do not match");
+    return;
+  }
 
-        setLoading(true);
+  if (password.length < 6) {
+    Alert.alert("Error", "Password must be at least 6 characters");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (authError) {
+      Alert.alert("Registration Failed", authError.message);
+      return;
+    }
+
+    const userId = authData.user?.id;
+    if (!userId) throw new Error("User ID not returned");
+
+    const { data: profileData, error: profileError } = await supabase
+      .from("users")
+      .update({ name })
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (profileError) {
+      Alert.alert("Error", profileError.message);
+      return;
+    }
+
+    console.log("User registered:", profileData);
+
+    setUser(profileData); // update context
+    router.replace("/city-select"); // immediate redirect
+
+  } catch (err: any) {
+    console.error("Unexpected error:", err);
+    Alert.alert("Error", err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
 
-        // // ВРЕМЕННЫЙ MOCK - удали когда исправишь rate limit
-        // await new Promise(resolve => setTimeout(resolve, 1000));
-        // setLoading(false);
-        // console.log("Mock registration for:", email);
-        // Alert.alert("Success (Mock)", "UI flow works! Fix Supabase rate limit to enable real registration.", [
-        //     { text: "OK", onPress: () => router.replace("/city-select") }
-        // ]);
-        // return;
-        // // КОНЕЦ MOCK
+  return (
+    <LightScreen>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
 
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-            });
+        <SplitTitle first="Register " second="Account" style={styles.title} />
 
-            if (error) {
-                console.error("Registration error:", error);
-                Alert.alert("Registration Failed", error.message);
-                return;
-            }
+        <View style={styles.screenContainer}>
+          {/* Name */}
+          <View style={styles.fieldContainer}>
+            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+              <TextInput
+                placeholder="Enter the name"
+                value={name}
+                onChangeText={setName}
+                keyboardType="default"
+                autoCapitalize="none"
+                autoComplete="name"
+                style={styles.input}
+                placeholderTextColor="#94A3B8"
+                returnKeyType="next"
+                editable={!loading}
+              />
+            </GlassCardOnLight>
+          </View>
 
-            if (data?.user) {
-                console.log("User registered:", data.user);
-                console.log("Success");
-                Alert.alert(
-                    "Success", 
-                    "Registration successful!",
-                    [{ text: "OK", onPress: () => router.replace("/city-select") }]
-                );
-            }
-        } catch (err) {
-            console.error("Unexpected error:", err);
-            Alert.alert("Error", "An unexpected error occurred");
-        } finally {
-            setLoading(false);
-        }
-    };
+          {/* Email */}
+          <View style={styles.fieldContainer}>
+            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+              <TextInput
+                placeholder="Enter the email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                style={styles.input}
+                placeholderTextColor="#94A3B8"
+                returnKeyType="next"
+                editable={!loading}
+              />
+            </GlassCardOnLight>
+          </View>
 
-    return (
-        <LightScreen>
-            <View style={styles.container}>
-                <View style={styles.headerContainer}>
-                    <TouchableOpacity 
-                        onPress={() => { router.push('/') }} 
-                        style={styles.backButton}
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#0F172A" />
-                    </TouchableOpacity>
-                </View>
+          {/* Password */}
+          <View style={styles.fieldContainer}>
+            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+              <TextInput
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="password"
+                placeholderTextColor="#94A3B8"
+                style={styles.input}
+                returnKeyType="next"
+                editable={!loading}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#94A3B8"
+                />
+              </TouchableOpacity>
+            </GlassCardOnLight>
+          </View>
 
-                <SplitTitle first="Register " second="Account" style={styles.title} />
+          {/* Confirm Password */}
+          <View style={styles.fieldContainer}>
+            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+              <TextInput
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                placeholderTextColor="#94A3B8"
+                returnKeyType="done"
+                style={styles.input}
+                editable={!loading}
+                onSubmitEditing={handleRegister}
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Ionicons
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#94A3B8"
+                />
+              </TouchableOpacity>
+            </GlassCardOnLight>
+          </View>
 
-                <View style={styles.screenContainer}>
-                    <View style={styles.fieldContainer}>
-                        <GlassCardOnLight
-                            style={styles.glassCard}
-                            contentStyle={styles.glassCardContent}
-                        >
-                            <TextInput
-                                placeholder="Enter the email"
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                autoComplete="email"
-                                style={styles.input}
-                                placeholderTextColor="#94A3B8"
-                                returnKeyType="next"
-                                editable={!loading}
-                            />
-                        </GlassCardOnLight>
-                    </View>
-                    <View style={styles.fieldContainer}>
-                        <GlassCardOnLight
-                            style={styles.glassCard}
-                            contentStyle={styles.glassCardContent}
-                        >
-                            <TextInput
-                                placeholder="Password"
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={!showPassword}
-                                autoCapitalize="none"
-                                autoComplete="password"
-                                placeholderTextColor="#94A3B8"
-                                style={styles.input}
-                                returnKeyType="next"
-                                editable={!loading}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                <Ionicons 
-                                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                                    size={20} 
-                                    color="#94A3B8" 
-                                />
-                            </TouchableOpacity>
-                        </GlassCardOnLight>
-                    </View>
-                    <View style={styles.fieldContainer}>
-                        <GlassCardOnLight
-                            style={styles.glassCard}
-                            contentStyle={styles.glassCardContent}
-                        >
-                            <TextInput
-                                placeholder="Confirm Password"
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                secureTextEntry={!showConfirmPassword}
-                                autoCapitalize="none"
-                                placeholderTextColor="#94A3B8"
-                                returnKeyType="done"
-                                style={styles.input}
-                                editable={!loading}
-                                onSubmitEditing={handleRegister}
-                            />
-                            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                <Ionicons 
-                                    name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
-                                    size={20} 
-                                    color="#94A3B8" 
-                                />
-                            </TouchableOpacity>
-                        </GlassCardOnLight>
-                    </View>
-                    <View style={styles.fieldContainer}>
-                        <TouchableOpacity 
-                            style={[styles.button, loading && styles.buttonDisabled]}
-                            onPress={handleRegister}
-                            disabled={loading}
-                        >
-                            <Text style={styles.buttonText}>
-                                {loading ? "Registering..." : "Register"}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        </LightScreen>
-    );
+          {/* Register Button */}
+          <View style={styles.fieldContainer}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>{loading ? "Registering..." : "Register"}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </LightScreen>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -223,7 +237,7 @@ const styles = StyleSheet.create({
     },
     fieldContainer: {
         marginBottom: 8,
-        width: 350,
+        width: "90%",
     },
     screenContainer: {
         flex: 1,

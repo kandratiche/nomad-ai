@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { View, Text, TouchableOpacity, Linking, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,8 +6,19 @@ import { LightScreen } from "../components/ui/LightScreen";
 import { GlassCardOnLight } from "../components/ui/GlassCard";
 import { BodyText, CaptionText } from "../components/ui/ThemedText";
 import { SplitTitle } from "@/components/ui/SplitTitle";
+import { AuthContext } from "@/context/authContext";
+
+
 
 export default function WelcomeScreen() {
+  const { user } = useContext(AuthContext);
+  
+  useEffect(() => { 
+      if (user) {
+          router.replace("/home");
+      }
+  }, [user]);
+  
   return (
     <LightScreen>
       <ScrollView

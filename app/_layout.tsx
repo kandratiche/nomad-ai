@@ -22,6 +22,7 @@ import {
   Montserrat_700Bold,
   Montserrat_800ExtraBold,
 } from "@expo-google-fonts/montserrat";
+import { AuthProvider } from "@/context/authContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,21 +56,23 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <View style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
-          <StatusBar style="dark" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "#F8FAFC" },
-              animation: "fade",
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="city-select" />
-            <Stack.Screen name="vibe-check" />
-            <Stack.Screen name="timeline" />
-            <Stack.Screen name="guide/[id]" />
-            <Stack.Screen name="(tabs)" options={{ animation: "slide_from_bottom" }} />
-          </Stack>
+          <AuthProvider>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: "#F8FAFC" },
+                animation: "fade",
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="city-select" />
+              <Stack.Screen name="vibe-check" />
+              <Stack.Screen name="timeline" />
+              <Stack.Screen name="guide/[id]" />
+              <Stack.Screen name="(tabs)" options={{ animation: "slide_from_bottom" }} />
+            </Stack>
+          </AuthProvider>
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>
