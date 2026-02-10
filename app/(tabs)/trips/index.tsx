@@ -1,33 +1,30 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LightScreen } from "../../components/ui/LightScreen";
-import { GlassCardOnLight } from "../../components/ui/GlassCard";
-import { SplitTitle } from "../../components/ui/SplitTitle";
-import { BodyText, CaptionText } from "../../components/ui/ThemedText";
-import { SAVED_TRIPS } from "../../constants/mockData";
+import { LightScreen } from "../../../components/ui/LightScreen";
+import { GlassCardOnLight } from "../../../components/ui/GlassCard";
+import { SplitTitle } from "../../../components/ui/SplitTitle";
+import { BodyText, CaptionText } from "../../../components/ui/ThemedText";
+import { SAVED_TRIPS } from "../../../constants/mockData";
 import { AuthContext } from "@/context/authContext";
+import { Button } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 
 export default function TripsScreen() {
-  const { user } = useContext(AuthContext);
+  const { t } = useTranslation();
+  const { user, loading } = useContext(AuthContext);
+
+  React.useEffect(() => {
+    if (!loading && !user) router.replace("/");
+  }, [loading, user]);
 
   return (
     <LightScreen>
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           <View>
-            <CaptionText style={styles.welcomeText}>WELCOME BACK</CaptionText>
+            <CaptionText style={styles.welcomeText}>{t("trips.welcomeBack")}</CaptionText>
             <BodyText style={styles.userName}>{user?.name || "Guest"}</BodyText>
           </View>
 
@@ -40,40 +37,35 @@ export default function TripsScreen() {
         </View>
 
         <View style={styles.titleRow}>
-          <SplitTitle first="MY " second="TRIPS" textStyle={styles.titleText} />
+          <SplitTitle first={t("trips.my")} second={t("trips.saved")} textStyle={styles.titleText} />
         </View>
 
         <View style={styles.tabRow}>
           <TouchableOpacity style={[styles.tabButton, styles.activeTab]}>
-            <Text style={[styles.tabText, styles.activeTabText]}>Upcoming</Text>
+            <Text style={[styles.tabText, styles.activeTabText]}>{t("trips.upcoming")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tabButton}>
-            <Text style={styles.tabText}>Past</Text>
+            <Text style={styles.tabText}>{t("trips.past")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tabButton}>
-            <Text style={styles.tabText}>Saved</Text>
+            <Text style={styles.tabText}>{t("trips.saved")}</Text>
           </TouchableOpacity>
         </View>
 
         {SAVED_TRIPS.length === 0 ? (
           <GlassCardOnLight style={styles.emptyCard}>
             <Ionicons name="calendar-outline" size={48} color="#94A3B8" style={styles.emptyIcon} />
-            <BodyText style={styles.emptyTitle}>No saved trips yet</BodyText>
-            <CaptionText style={styles.emptySubtitle}>
-              Create one from Home with the AI agent
-            </CaptionText>
-            <TouchableOpacity
-              onPress={() => router.push("/(tabs)")}
-              style={styles.goHomeButton}
-            >
-              <Text style={styles.goHomeText}>Go to Home</Text>
+            <BodyText style={styles.emptyTitle}>{t("trips.noSavedTrips")}</BodyText>
+            <CaptionText style={styles.emptySubtitle}>{t("trips.createFromHome")}</CaptionText>
+            <TouchableOpacity onPress={() => router.push("/(tabs)")} style={styles.goHomeButton}>
+              <Text style={styles.goHomeText}>{t("trips.goHome")}</Text>
             </TouchableOpacity>
           </GlassCardOnLight>
         ) : (
           <>
             <View style={styles.nextAdventureRow}>
-              <CaptionText style={styles.nextAdventureText}>NEXT ADVENTURE</CaptionText>
-              <Text style={styles.nextAdventureDate}>IN 2 DAYS</Text>
+              <CaptionText style={styles.nextAdventureText}>{t("trips.nextAdventure")}</CaptionText>
+              <Text style={styles.nextAdventureDate}>{t("trips.inDays", { days: 2 })}</Text>
             </View>
 
             {SAVED_TRIPS.map((trip, idx) => (
@@ -85,26 +77,18 @@ export default function TripsScreen() {
               >
                 <GlassCardOnLight style={styles.tripCard}>
                   <View style={styles.tripCardContent}>
-                    <Image
-                      source={{ uri: trip.previewImageUrl }}
-                      style={styles.tripImage}
-                      resizeMode="cover"
-                    />
-
+                    <Image source={{ uri: trip.previewImageUrl }} style={styles.tripImage} resizeMode="cover" />
                     <View style={styles.bookedBadge}>
                       <View style={styles.bookedIndicator} />
                       <Text style={styles.bookedText}>BOOKED</Text>
                     </View>
-
                     <View style={styles.tripOverlay}>
                       <View style={styles.tripDateRow}>
                         <Ionicons name="calendar-outline" size={14} color="#FFF" style={styles.calendarIcon} />
                         <CaptionText style={styles.tripDateText}>Feb 6, 19:00</CaptionText>
                       </View>
-
                       <Text style={styles.tripTitle}>{idx === 0 ? "DATE NIGHT" : trip.title}</Text>
                       <Text style={styles.tripCity}>{trip.cityName}</Text>
-
                       <TouchableOpacity style={styles.forwardButton}>
                         <Ionicons name="arrow-forward" size={22} color="#0F172A" />
                       </TouchableOpacity>
@@ -116,9 +100,21 @@ export default function TripsScreen() {
           </>
         )}
       </ScrollView>
+
+      {!user && (
+        <View style={styles.guestContainer}>
+          <View style={styles.guestContent}>
+            <CaptionText style={styles.guestText}>{t("trips.guestMessage")}</CaptionText>
+            <Button style={styles.guestButton} labelStyle={styles.guestButtonText} onPress={() => router.push("/")}>
+              {t("trips.logIn")}
+            </Button>
+          </View>
+        </View>
+      )}
     </LightScreen>
   );
 }
+
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -312,5 +308,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  guestContainer: {
+    position: "absolute",
+    bottom: 60,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    padding: 20,
+    marginTop: 16,
+  },
+  guestContent: {
+    flexDirection: "column",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 1)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    gap: 10,
+  },
+  guestText: {
+    color: "#0F172A",
+    fontWeight: "600",
+  },
+  guestButton: {
+    width: "100%",
+    backgroundColor: "#2DD4BF",
+  },
+  guestButtonText: {
+    color: "#0F172A",
+    fontWeight: "600",
   },
 });

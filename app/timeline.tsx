@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from 'react-i18next';
 import { LightScreen } from "../components/ui/LightScreen";
 import { GlassCardOnLight } from "../components/ui/GlassCard";
 import { BodyText, CaptionText } from "../components/ui/ThemedText";
@@ -29,12 +30,13 @@ const safetyColor = (level: string) => {
 };
 
 export default function TimelineScreen() {
+  const { t } = useTranslation(); // Добавьте
   const itinerary = ALMATY_ITINERARY;
   const guideWhatsApp = "77001234567";
 
   const openWhatsApp = () => {
     const message = encodeURIComponent(
-      `Hi! I'd like to book the "${itinerary.title}" experience.`
+      t('timeline.bookMessage', { title: itinerary.title })
     );
     Linking.openURL(`https://wa.me/${guideWhatsApp}?text=${message}`);
   };
@@ -48,7 +50,7 @@ export default function TimelineScreen() {
 
         <View style={styles.safetyBanner}>
           <View style={styles.safetyDot} />
-          <CaptionText style={styles.safetyText}>ANALYZING SAFETY...</CaptionText>
+          <CaptionText style={styles.safetyText}>{t('timeline.analyzingSafety')}</CaptionText>
         </View>
 
         <TouchableOpacity style={styles.moreButton}>
@@ -60,16 +62,18 @@ export default function TimelineScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
-        <Text style={styles.title}>Your Night</Text>
+        <Text style={styles.title}>{t('timeline.yourNight')}</Text>
         <View style={styles.subtitleRow}>
-          <Text style={styles.title}>in </Text>
+          <Text style={styles.title}>{t('timeline.in')} </Text>
           <Text style={styles.highlight}>Almaty</Text>
         </View>
 
         <View style={styles.summaryCards}>
           <GlassCardOnLight style={styles.summaryCard}>
             <Ionicons name="shield-checkmark" size={18} color="#10B981" style={styles.icon} />
-            <CaptionText style={styles.cardText}>{itinerary.totalSafetyScore}% safe</CaptionText>
+            <CaptionText style={styles.cardText}>
+              {itinerary.totalSafetyScore}% {t('timeline.safe')}
+            </CaptionText>
           </GlassCardOnLight>
 
           <GlassCardOnLight style={styles.summaryCard}>
@@ -104,15 +108,15 @@ export default function TimelineScreen() {
                     <View style={styles.stopHeader}>
                       <Text style={styles.stopTime}>{stop.time}</Text>
                       <View style={styles.safeBadge}>
-                        <Text style={styles.safeBadgeText}>SAFE ZONE</Text>
+                        <Text style={styles.safeBadgeText}>{t('timeline.safeZone')}</Text>
                       </View>
                     </View>
 
                     <BodyText style={styles.stopTitle}>{stop.title}</BodyText>
                     <CaptionText style={styles.stopDescription}>
                       {stop.title.includes("Meeting")
-                        ? "Meeting point near Hachiko statue. Crowded but highly monitored."
-                        : "Next stop on your route."}
+                        ? t('timeline.meetingPoint')
+                        : t('timeline.nextStop')}
                     </CaptionText>
 
                     <View style={styles.stopImageWrapper}>
@@ -123,13 +127,15 @@ export default function TimelineScreen() {
                       />
                       <View style={styles.visibilityOverlay}>
                         <Ionicons name="eye-outline" size={12} color="#FFF" style={styles.iconSmall} />
-                        <Text style={styles.visibilityText}>High Visibility</Text>
+                        <Text style={styles.visibilityText}>{t('timeline.highVisibility')}</Text>
                       </View>
                     </View>
 
                     <View style={styles.walkInfo}>
                       <Ionicons name="walk-outline" size={14} color="#64748B" style={styles.iconSmall} />
-                      <CaptionText style={styles.walkText}>WALK: 15 MIN • FLAT TERRAIN</CaptionText>
+                      <CaptionText style={styles.walkText}>
+                        {t('timeline.walk')}: 15 {t('timeline.min')} • {t('timeline.flatTerrain')}
+                      </CaptionText>
                     </View>
                   </View>
                 </GlassCardOnLight>
@@ -139,7 +145,7 @@ export default function TimelineScreen() {
         </View>
 
         <TouchableOpacity style={styles.bookButton} onPress={openWhatsApp}>
-          <Text style={styles.bookText}>Book everything</Text>
+          <Text style={styles.bookText}>{t('timeline.bookEverything')}</Text>
           <Ionicons name="arrow-forward" size={20} color="#0F172A" />
         </TouchableOpacity>
       </ScrollView>

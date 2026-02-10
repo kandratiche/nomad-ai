@@ -3,8 +3,22 @@ import { Tabs } from "expo-router";
 import { View, StyleSheet, Platform } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
+import { useContext, useEffect } from "react";
+import { AuthContext } from "@/context/authContext";
+import { router } from "expo-router";
 
 export default function TabsLayout() {
+  const { user, loading } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/");
+    }
+  }, [loading, user]);
+
+  if (loading || !user) {
+    return null;
+  }
   return (
     <Tabs
       screenOptions={{
@@ -28,28 +42,28 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="home/index"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="explore/index"
         options={{
           title: "Explore",
           tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="trips"
+        name="trips/index"
         options={{
           title: "Trips",
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="profile/index"
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,

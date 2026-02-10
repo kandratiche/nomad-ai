@@ -2,16 +2,16 @@ import React, { useContext, useEffect } from "react";
 import { View, Text, TouchableOpacity, Linking, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from 'react-i18next';
 import { LightScreen } from "../components/ui/LightScreen";
 import { GlassCardOnLight } from "../components/ui/GlassCard";
 import { BodyText, CaptionText } from "../components/ui/ThemedText";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { AuthContext } from "@/context/authContext";
 
-
-
 export default function WelcomeScreen() {
   const { user } = useContext(AuthContext);
+  const { t } = useTranslation(); // Добавьте
   
   useEffect(() => { 
       if (user) {
@@ -29,36 +29,36 @@ export default function WelcomeScreen() {
           <SplitTitle first="Nomad" second="AI" />
         </View>
         <BodyText style={styles.description}>
-          Your cyberpunk travel companion. Safe adventures, real-time guidance.
+          {t('welcome.description')}
         </BodyText>
 
         <GlassCardOnLight style={styles.loginCard}>
           <TouchableOpacity
-            onPress={() => router.replace("/login")}
+            onPress={() => router.replace("/auth/login")}
             style={styles.buttonContent}
           >
             <Ionicons name="person-outline" size={24} color="#0F172A" style={styles.icon} />
-            <Text style={styles.loginButtonText}>Log in</Text>
+            <Text style={styles.loginButtonText}>{t('welcome.login')}</Text>
           </TouchableOpacity>
         </GlassCardOnLight>
 
         <GlassCardOnLight style={styles.signupCard}>
           <TouchableOpacity
-            onPress={() => router.replace("/register")}
+            onPress={() => router.replace("/auth/register")}
             style={styles.buttonContent}
           >
             <Ionicons name="person-outline" size={24} color="#2DD4BF" style={styles.icon} />
-            <Text style={styles.signupButtonText}>Sign Up</Text>
+            <Text style={styles.signupButtonText}>{t('welcome.signup')}</Text>
           </TouchableOpacity>
         </GlassCardOnLight>
 
         <View style={styles.linksContainer}>
           <TouchableOpacity onPress={() => Linking.openURL("https://example.com/terms")}>
-            <CaptionText style={styles.linkText}>Terms of Service</CaptionText>
+            <CaptionText style={styles.linkText}>{t('welcome.terms')}</CaptionText>
           </TouchableOpacity>
           <CaptionText style={styles.separator}>•</CaptionText>
           <TouchableOpacity onPress={() => Linking.openURL("https://example.com/privacy")}>
-            <CaptionText style={styles.linkText}>Privacy Policy</CaptionText>
+            <CaptionText style={styles.linkText}>{t('welcome.privacy')}</CaptionText>
           </TouchableOpacity>
         </View>
       </ScrollView>

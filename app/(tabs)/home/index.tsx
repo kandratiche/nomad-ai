@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,20 +11,22 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LightScreen } from "../../components/ui/LightScreen";
-import { GlassCardOnLight } from "../../components/ui/GlassCard";
-import { SafetyButton } from "../../components/SafetyButton";
-import { BodyText, HeadingText, CaptionText } from "../../components/ui/ThemedText";
-import { TRENDING_EXPERIENCES } from "../../constants/mockData";
+import { LightScreen } from "../../../components/ui/LightScreen";
+import { GlassCardOnLight } from "../../../components/ui/GlassCard";
+import { SafetyButton } from "../../../components/SafetyButton";
+import { BodyText, HeadingText, CaptionText } from "../../../components/ui/ThemedText";
+import { TRENDING_EXPERIENCES } from "../../../constants/mockData";
 import { AuthContext } from "@/context/authContext";
+import { Button } from "react-native-paper";
+import i18n from "@/app/i18n";
 
 const QUICK_ACTIONS = [
-  { id: "date", label: "Date Night", icon: "heart" },
-  { id: "budget", label: "Budget Eats", icon: "wallet" },
-  { id: "views", label: "Best Views", icon: "eye" },
-  { id: "culture", label: "Culture", icon: "book" },
-  { id: "nature", label: "Nature", icon: "leaf" },
-  { id: "local", label: "Local Vibes", icon: "people" },
+  { id: "date", labelKey: "home.dateNight", icon: "heart" },
+  { id: "budget", labelKey: "home.budgetEats", icon: "wallet" },
+  { id: "views", labelKey: "home.bestViews", icon: "eye" },
+  { id: "culture", labelKey: "home.culture", icon: "book" },
+  { id: "nature", labelKey: "home.nature", icon: "leaf" },
+  { id: "local", labelKey: "home.localVibes", icon: "people" },
 ];
 
 export default function HomeScreen() {
@@ -32,11 +34,9 @@ export default function HomeScreen() {
   const [isThinking, setIsThinking] = useState(false);
   const { user, loading } = useContext(AuthContext);
 
-  console.log(user);
-
-  if (!loading && !user) {
-    router.replace("/login");
-  }
+  useEffect(() => {
+    if (!loading && !user) router.replace("/");
+  }, [loading, user]);
 
   const handleSend = () => {
     if (!input.trim() && !isThinking) return;
@@ -55,43 +55,36 @@ export default function HomeScreen() {
     }, 1500);
   };
 
+  const handleChangeCity = () => {
+    router.replace({ pathname: "/auth/city-select", params: { new: "false" } });
+  };
+
   return (
     <LightScreen>
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.headerContainer}>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => router.push("/profile")}
-          >
+          <TouchableOpacity style={styles.profileButton} onPress={() => router.push("/profile")}>
             <View style={styles.avatar}>
               <Ionicons name="person" size={24} color="#2DD4BF" />
             </View>
             <View style={styles.profileText}>
-              <BodyText style={styles.profileName}>
-                {user?.name || "Guest"}
-              </BodyText>
-              <CaptionText style={styles.profileStatus}>● Online</CaptionText>
+              <BodyText style={styles.profileName}>{user?.name || i18n.t("home.guestMessage")}</BodyText>
+              <CaptionText style={styles.profileStatus}>{i18n.t("home.profileOnline")}</CaptionText>
             </View>
           </TouchableOpacity>
 
-          <View style={styles.cityContainer}>
+          <TouchableOpacity style={styles.cityContainer} onPress={handleChangeCity}>
             <Ionicons name="location" size={14} color="#2DD4BF" style={styles.cityIcon} />
-            <CaptionText style={styles.cityText}>
-              {user?.home_city || "Unknown"}
-            </CaptionText>
-          </View>
+            <CaptionText style={styles.cityText}>{user?.home_city || i18n.t("home.unknownCity")}</CaptionText>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.contentContainer}>
-
           <GlassCardOnLight style={styles.inputCard} contentStyle={styles.inputCardContent}>
             <TextInput
               value={input}
               onChangeText={setInput}
-              placeholder="Ask for a plan..."
+              placeholder={i18n.t("home.askPlan")}
               placeholderTextColor="#94A3B8"
               style={styles.input}
               returnKeyType="send"
@@ -102,13 +95,13 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </GlassCardOnLight>
 
-          <CaptionText style={styles.sectionLabel}>Quick actions</CaptionText>
+          <CaptionText style={styles.sectionLabel}>{i18n.t("home.quickActions")}</CaptionText>
           <View style={styles.quickActionsContainer}>
             {QUICK_ACTIONS.map((action) => (
               <TouchableOpacity key={action.id} onPress={handleQuickAction} activeOpacity={0.8}>
                 <View style={styles.quickActionButton}>
                   <Ionicons name={action.icon as any} size={18} color="#2DD4BF" style={styles.quickActionIcon} />
-                  <Text style={styles.quickActionLabel}>{action.label}</Text>
+                  <Text style={styles.quickActionLabel}>{i18n.t(action.labelKey)}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -118,19 +111,14 @@ export default function HomeScreen() {
             <GlassCardOnLight style={styles.thinkingCard}>
               <View style={styles.thinkingDot} />
               <ActivityIndicator size="small" color="#A78BFA" style={styles.thinkingSpinner} />
-              <BodyText style={styles.thinkingText}>AI is thinking...</BodyText>
+              <BodyText style={styles.thinkingText}>{i18n.t("home.aiThinking")}</BodyText>
             </GlassCardOnLight>
           )}
 
-          <HeadingText style={styles.sectionHeading}>Trending</HeadingText>
+          <HeadingText style={styles.sectionHeading}>{i18n.t("home.trending")}</HeadingText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.trendingContainer}>
             {TRENDING_EXPERIENCES.map((exp) => (
-              <TouchableOpacity
-                key={exp.id}
-                onPress={() => router.push("/timeline")}
-                activeOpacity={0.9}
-                style={styles.trendingCardWrapper}
-              >
+              <TouchableOpacity key={exp.id} onPress={() => router.push("/timeline")} activeOpacity={0.9} style={styles.trendingCardWrapper}>
                 <GlassCardOnLight style={styles.trendingCard}>
                   <View style={styles.trendingImageWrapper}>
                     <Image source={{ uri: exp.imageUrl }} style={styles.trendingImage} resizeMode="cover" />
@@ -148,12 +136,23 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
       </ScrollView>
-
-
       <SafetyButton variant="floating" />
+      {!user && (
+        <View style={styles.guestContainer}>
+          <View style={styles.guestContent}>
+            <CaptionText style={styles.guestText}>{i18n.t("home.guestMessage")}</CaptionText>
+            <Button style={styles.guestButton} labelStyle={styles.guestButtonText} onPress={() => router.push("/")}>
+              {i18n.t("home.logIn")}
+            </Button>
+          </View>
+        </View>
+      )}
     </LightScreen>
   );
 }
+
+// стили оставляем без изменений
+
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -340,5 +339,36 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.9)", 
     fontSize: 12, 
     marginLeft: 4 
+  },
+  guestContainer: {
+    position: "absolute",
+    bottom: 60,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    padding: 20,
+    marginTop: 16,
+  },
+  guestContent: {
+    flexDirection: "column",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 1)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    gap: 10,
+  },
+  guestText: {
+    color: "#0F172A",
+    fontWeight: "600",
+  },
+  guestButton: {
+    width: "100%",
+    backgroundColor: "#2DD4BF",
+  },
+  guestButtonText: {
+    color: "#0F172A",
+    fontWeight: "600",
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,69 +10,99 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LightScreen } from "../../components/ui/LightScreen";
-import { GlassCardOnLight } from "../../components/ui/GlassCard";
-import { SplitTitle } from "../../components/ui/SplitTitle";
-import { BodyText, CaptionText } from "../../components/ui/ThemedText";
-import { GUIDES, PLACES } from "../../constants/mockData";
+import { LightScreen } from "../../../components/ui/LightScreen";
+import { GlassCardOnLight } from "../../../components/ui/GlassCard";
+import { SplitTitle } from "../../../components/ui/SplitTitle";
+import { BodyText, CaptionText } from "../../../components/ui/ThemedText";
+import { GUIDES, PLACES } from "../../../constants/mockData";
 import { AuthContext } from "@/context/authContext";
+import { Button } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
 export default function ExploreScreen() {
   const [activeTab, setActiveTab] = useState<"guides" | "places">("guides");
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+  const { t } = useTranslation();
+
+  // безопасный редирект если нет пользователя
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/");
+    }
+  }, [loading, user]);
+
+  const handleChangeCity = () => {
+    router.replace({
+      pathname: "/auth/city-select",
+      params: { new: "false" },
+    });
+  };
+
+  const TabButton = ({ label, isActive, onPress }: any) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.tabButton, isActive && styles.activeTab]}
+    >
+      <Text style={[styles.tabText, isActive && styles.activeTabText]}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  const mapHeight = 180;
+  const paddingHorizontal = 24;
+  const gap = 6;
+  const cellWidth = (width - paddingHorizontal * 2 - gap * 5) / 6;
 
   return (
     <LightScreen>
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <SplitTitle
-            first="EXPLORE "
-            second="GUIDES"
+            first={t("explore.titleFirst")}
+            second={t("explore.titleSecond")}
             style={styles.splitTitle}
             textStyle={styles.splitTitleText}
           />
         </View>
 
-        <View style={styles.cityContainer}>
+        <TouchableOpacity style={styles.cityContainer} onPress={handleChangeCity}>
           <Ionicons name="location" size={14} color="#2DD4BF" style={styles.cityIcon} />
           <CaptionText style={styles.cityText}>
-            {user?.home_city || "Unknown"}
+            {user?.home_city || t("explore.unknownCity")}
           </CaptionText>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.tabRow}>
-          <TouchableOpacity
+          <TabButton
+            label={t("explore.allGuides")}
+            isActive={activeTab === "guides"}
             onPress={() => setActiveTab("guides")}
-            style={[styles.tabButton, activeTab === "guides" && styles.activeTab]}
-          >
-            <Text style={[styles.tabText, activeTab === "guides" && styles.activeTabText]}>
-              ALL GUIDES
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+          />
+          <TabButton
+            label={t("explore.places")}
+            isActive={activeTab === "places"}
             onPress={() => setActiveTab("places")}
-            style={styles.tabButton}
-          >
-            <Text style={styles.tabText}>PLACES</Text>
-          </TouchableOpacity>
+          />
         </View>
       </View>
 
-      <View style={styles.mapContainer}>
+      <View style={[styles.mapContainer, { height: mapHeight }]}>
         <View style={styles.mapPlaceholder}>
           <View style={styles.mapGrid}>
             {[...Array(24)].map((_, i) => (
-              <View key={i} style={styles.gridCell} />
+              <View key={i} style={[styles.gridCell, { width: cellWidth }]} />
             ))}
           </View>
           <View style={styles.mapMarkerBlue} />
           <View style={styles.mapMarkerYellow} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {activeTab === "guides" &&
             GUIDES.map((guide) => (
               <TouchableOpacity
@@ -88,7 +118,6 @@ export default function ExploreScreen() {
                       style={styles.guideImage}
                       resizeMode="cover"
                     />
-
                     <View style={styles.guideOverlay}>
                       <View style={styles.guideInfoRow}>
                         <View>
@@ -102,7 +131,6 @@ export default function ExploreScreen() {
                           {guide.currency}/hr
                         </Text>
                       </View>
-
                       <View style={styles.guideTagsRow}>
                         {guide.tags.slice(0, 3).map((tag) => (
                           <View key={tag} style={styles.tag}>
@@ -110,9 +138,8 @@ export default function ExploreScreen() {
                           </View>
                         ))}
                       </View>
-
                       <TouchableOpacity style={styles.chatButton}>
-                        <Text style={styles.chatButtonText}>CHAT / BOOK →</Text>
+                        <Text style={styles.chatButtonText}>{t("explore.chatBook")}</Text>
                       </TouchableOpacity>
                     </View>
 
@@ -124,7 +151,7 @@ export default function ExploreScreen() {
                           color="#2DD4BF"
                           style={styles.verifiedIcon}
                         />
-                        <Text style={styles.verifiedText}>VERIFIED</Text>
+                        <Text style={styles.verifiedText}>{t("explore.verified")}</Text>
                       </View>
                     )}
 
@@ -149,14 +176,12 @@ export default function ExploreScreen() {
                     />
                     <View style={styles.placeInfo}>
                       <BodyText style={styles.placeName}>{place.name}</BodyText>
-
                       <View style={styles.placeSafetyRow}>
                         <Ionicons name="shield-checkmark" size={14} color="#10B981" />
                         <CaptionText style={styles.placeSafetyText}>
                           {place.safetyScore}% safe
                         </CaptionText>
                       </View>
-
                       <View style={styles.placeTagsRow}>
                         {place.tags.slice(0, 2).map((tag) => (
                           <CaptionText key={tag} style={styles.placeTag}>
@@ -171,9 +196,24 @@ export default function ExploreScreen() {
             ))}
         </ScrollView>
       </View>
+
+      {!user && (
+        <View style={styles.guestContainer}>
+          <View style={styles.guestContent}>
+            <CaptionText style={styles.guestText}>{t("explore.guestMessage")}</CaptionText>
+            <Button
+              style={styles.guestButton}
+              labelStyle={styles.guestButtonText}
+              onPress={() => router.push("/")}
+            >
+              {t("explore.logIn")}
+            </Button>
+          </View>
+        </View>
+      )}
     </LightScreen>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -419,5 +459,36 @@ const styles = StyleSheet.create({
   placeTag: {
     color: "#64748B",
     fontSize: 11,
+  },
+  guestContainer: {
+    position: "absolute",
+    bottom: 60,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    padding: 20,
+    marginTop: 16,
+  },
+  guestContent: {
+    flexDirection: "column",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 1)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    gap: 10,
+  },
+  guestText: {
+    color: "#0F172A",
+    fontWeight: "600",
+  },
+  guestButton: {
+    width: "100%",
+    backgroundColor: "#2DD4BF",
+  },
+  guestButtonText: {
+    color: "#0F172A",
+    fontWeight: "600",
   },
 });

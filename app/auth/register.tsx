@@ -2,14 +2,16 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
 import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
-import { StyleSheet } from "react-native";
 import supabase from "@/lib/supabaseClient";
 import { AuthContext } from "@/context/authContext";
+import { useTranslation } from "react-i18next";
 
 export default function UserRegister() {
+  const { t } = useTranslation();
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [name, setName] = React.useState("");
@@ -20,63 +22,71 @@ export default function UserRegister() {
 
   const { user, setUser } = useContext(AuthContext);
 
-const handleRegister = async () => {
-  if (!email || !password || !confirmPassword || !name) {
-    Alert.alert("Error", "Please fill all fields");
-    return;
-  }
+  useEffect(() => {
+    if (user) {
+      router.replace("/home");
+    }
+  }, [user]);
 
-  if (password !== confirmPassword) {
-    Alert.alert("Error", "Passwords do not match");
-    return;
-  }
-
-  if (password.length < 6) {
-    Alert.alert("Error", "Password must be at least 6 characters");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) {
-      Alert.alert("Registration Failed", authError.message);
+  const handleRegister = async () => {
+    if (!email || !password || !confirmPassword || !name) {
+      Alert.alert(t("userRegister.register"), t("userRegister.fillAllFields"));
       return;
     }
 
-    const userId = authData.user?.id;
-    if (!userId) throw new Error("User ID not returned");
-
-    const { data: profileData, error: profileError } = await supabase
-      .from("users")
-      .update({ name })
-      .eq("id", userId)
-      .select()
-      .single();
-
-    if (profileError) {
-      Alert.alert("Error", profileError.message);
+    if (password !== confirmPassword) {
+      Alert.alert(t("userRegister.register"), t("userRegister.passwordsDoNotMatch"));
       return;
     }
 
-    console.log("User registered:", profileData);
+    if (password.length < 6) {
+      Alert.alert(t("userRegister.register"), t("userRegister.passwordMinLength"));
+      return;
+    }
 
-    setUser(profileData); // update context
-    router.replace("/city-select"); // immediate redirect
+    setLoading(true);
 
-  } catch (err: any) {
-    console.error("Unexpected error:", err);
-    Alert.alert("Error", err.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
+      if (authError) {
+        Alert.alert(t("userRegister.registrationFailed"), authError.message);
+        return;
+      }
+
+      const userId = authData.user?.id;
+      if (!userId) throw new Error(t("userRegister.userIdNotReturned"));
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("users")
+        .update({ name: name, languages: "en" })
+        .eq("id", userId)
+        .select()
+        .single();
+
+      if (profileError) {
+        Alert.alert(t("userRegister.register"), profileError.message);
+        return;
+      }
+
+      console.log("User registered:", profileData);
+      setUser(profileData);
+
+      router.replace({
+        pathname: "/auth/city-select",
+        params: { new: "true" },
+      });
+
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      Alert.alert(t("userRegister.register"), err.message || t("userRegister.somethingWrong"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <LightScreen>
@@ -87,14 +97,17 @@ const handleRegister = async () => {
           </TouchableOpacity>
         </View>
 
-        <SplitTitle first="Register " second="Account" style={styles.title} />
+        <SplitTitle 
+          first={t("userRegister.titleFirst")} 
+          second={t("userRegister.titleSecond")} 
+          style={styles.title} 
+        />
 
         <View style={styles.screenContainer}>
-          {/* Name */}
           <View style={styles.fieldContainer}>
             <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
               <TextInput
-                placeholder="Enter the name"
+                placeholder={t("userRegister.namePlaceholder")}
                 value={name}
                 onChangeText={setName}
                 keyboardType="default"
@@ -108,11 +121,10 @@ const handleRegister = async () => {
             </GlassCardOnLight>
           </View>
 
-          {/* Email */}
           <View style={styles.fieldContainer}>
             <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
               <TextInput
-                placeholder="Enter the email"
+                placeholder={t("userRegister.emailPlaceholder")}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -126,11 +138,10 @@ const handleRegister = async () => {
             </GlassCardOnLight>
           </View>
 
-          {/* Password */}
           <View style={styles.fieldContainer}>
             <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
               <TextInput
-                placeholder="Password"
+                placeholder={t("userRegister.passwordPlaceholder")}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -151,11 +162,10 @@ const handleRegister = async () => {
             </GlassCardOnLight>
           </View>
 
-          {/* Confirm Password */}
           <View style={styles.fieldContainer}>
             <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
               <TextInput
-                placeholder="Confirm Password"
+                placeholder={t("userRegister.confirmPasswordPlaceholder")}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
@@ -176,14 +186,15 @@ const handleRegister = async () => {
             </GlassCardOnLight>
           </View>
 
-          {/* Register Button */}
           <View style={styles.fieldContainer}>
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleRegister}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>{loading ? "Registering..." : "Register"}</Text>
+              <Text style={styles.buttonText}>
+                {loading ? t("userRegister.registering") : t("userRegister.register")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -193,73 +204,73 @@ const handleRegister = async () => {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    headerContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginLeft: 0,
-        paddingBottom: 12,
-    },
-    backButton: {
-        top: 24,
-        left: 24,
-        zIndex: 10,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: "rgba(241,245,249,0.95)",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    title: {
-        marginTop: 50,
-        marginBottom: 20,
-        marginLeft: 24,
-    },
-    glassCard: {
-        borderRadius: 24,
-        marginBottom: 20,
-    },
-    glassCardContent: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    input: {
-        flex: 1,
-        color: "#0F172A",
-        fontSize: 16,
-        paddingVertical: 4,
-        ...(Platform.OS === 'web' && { outlineStyle: 'none' })
-    },
-    fieldContainer: {
-        marginBottom: 8,
-        width: "90%",
-    },
-    screenContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 124,
-    },
-    button: {
-        width: '100%',
-        marginTop: 12,
-        borderRadius: 24,
-        backgroundColor: "#2DD4BF",
-        paddingVertical: 16,
-        paddingHorizontal: 16,
-        alignItems: 'center',  
-    },
-    buttonDisabled: {
-        opacity: 0.5,
-    },
-    buttonText: {
-        color: "#FFF",
-        fontSize: 16,
-        fontWeight: "600",
-    }
+  container: { 
+    flex: 1 
+  },
+  headerContainer: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    marginLeft: 0, 
+    paddingBottom: 12 
+  },
+  backButton: { 
+    top: 24, 
+    left: 24, 
+    zIndex: 10, 
+    width: 40, 
+    height: 40, 
+    borderRadius: 20, 
+    backgroundColor: "rgba(241,245,249,0.95)", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  title: { 
+    marginTop: 50, 
+    marginBottom: 20, 
+    marginLeft: 24 
+  },
+  glassCard: { 
+    borderRadius: 24, 
+    marginBottom: 20 
+  },
+  glassCardContent: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    paddingHorizontal: 16, 
+    paddingVertical: 12 
+  },
+  input: { 
+    flex: 1, 
+    color: "#0F172A", 
+    fontSize: 16, 
+    paddingVertical: 4, 
+    ...(Platform.OS === "web" && { outlineStyle: "none" }) 
+  },
+  fieldContainer: { 
+    marginBottom: 8, 
+    width: "90%" 
+  },
+  screenContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    marginBottom: 124 
+  },
+  button: { 
+    width: "100%", 
+    marginTop: 12, 
+    borderRadius: 24, 
+    backgroundColor: "#2DD4BF", 
+    paddingVertical: 16, 
+    paddingHorizontal: 16, 
+    alignItems: "center" 
+  },
+  buttonDisabled: { 
+    opacity: 0.5 
+  },
+  buttonText: { 
+    color: "#FFF", 
+    fontSize: 16, 
+    fontWeight: "600" 
+  },
 });

@@ -1,4 +1,5 @@
 import "../global.css";
+import './i18n';
 import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -24,7 +25,6 @@ import {
 } from "@expo-google-fonts/montserrat";
 import { AuthProvider } from "@/context/authContext";
 
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -41,7 +41,10 @@ export default function RootLayout() {
     Montserrat_800ExtraBold,
   });
 
-  // ВОТ ЭТО ДОБАВЬ!
+  useEffect(() => {
+    SplashScreen.preventAutoHideAsync();
+  }, []);
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();

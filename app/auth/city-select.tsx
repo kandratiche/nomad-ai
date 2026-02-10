@@ -9,29 +9,30 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { CITIES } from "../constants/mockData";
-import { LightScreen } from "../components/ui/LightScreen";
-import { GlassCardOnLight } from "../components/ui/GlassCard";
-import { SplitTitle } from "../components/ui/SplitTitle";
-import { CaptionText } from "../components/ui/ThemedText";
+import { useTranslation } from 'react-i18next';
+import { CITIES } from "../../constants/mockData";
+import { LightScreen } from "../../components/ui/LightScreen";
+import { GlassCardOnLight } from "../../components/ui/GlassCard";
+import { SplitTitle } from "../../components/ui/SplitTitle";
+import { CaptionText } from "../../components/ui/ThemedText";
 import { AuthContext } from "@/context/authContext";
+import { useLocalSearchParams } from "expo-router";
 import supabase from "@/lib/supabaseClient";
 
-const CITY_SUBTITLES: Record<string, string> = {
-  Astana: "Futuristic City",
-  Almaty: "Mountains",
-  Aktau: "Seaside",
+type CitySelectScreenProps = {
+  new: string;
 };
 
 export default function CitySelectScreen() {
-  const [selectedId, setSelectedId] = React.useState<string | null>("Almaty");
+  const { t } = useTranslation();
+  const params = useLocalSearchParams<CitySelectScreenProps>();
+  const isNew = params.new === "true";
   const { user, setUser } = useContext(AuthContext);
-
-  console.log("City select", selectedId);
+  const [selectedId, setSelectedId] = React.useState<string | null>(user?.home_city || "Almaty");
 
   const handleContinue = async () => {
-    if (!selectedId) return alert("Please select a city");
-    if (!user?.id) return alert("User not found");
+    if (!selectedId) return alert(t('citySelect.selectCity'));
+    if (!user?.id) return alert(t('citySelect.userNotFound'));
 
     try {
       const { data: updatedProfile, error } = await supabase
@@ -47,22 +48,29 @@ export default function CitySelectScreen() {
 
       setUser(updatedProfile);
 
-      router.replace("/vibe-check");
+      if (isNew) {
+        router.replace("/auth/vibe-check");
+      } else {
+        router.replace("/home");
+      }
     } catch (err: any) {
       console.error("Error updating city:", err);
-      alert(err.message || "Something went wrong");
+      alert(err.message || t('citySelect.somethingWrong'));
     }
   };
-
 
   return (
     <LightScreen>
       <View style={styles.container}>
         <View style={styles.topBar}>
           <TouchableOpacity
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.push("/")
-            }
+            onPress={() => {
+              if (isNew) {
+                router.replace("/auth/register");
+              } else {
+                router.replace("/home");
+              }
+            }}
             style={styles.backButton}
           >
             <Ionicons name="arrow-back" size={22} color="#0F172A" />
@@ -81,7 +89,11 @@ export default function CitySelectScreen() {
           </View>
         </View>
 
-        <SplitTitle first="Where do we " second="start?" style={styles.title} />
+        <SplitTitle 
+          first={t('citySelect.titleFirst')} 
+          second={t('citySelect.titleSecond')} 
+          style={styles.title} 
+        />
 
         <TouchableOpacity style={styles.locateButton} onPress={handleContinue}>
           <Ionicons
@@ -90,7 +102,7 @@ export default function CitySelectScreen() {
             color="#2DD4BF"
             style={styles.locateIcon}
           />
-          <Text style={styles.locateText}>LOCATE ME</Text>
+          <Text style={styles.locateText}>{t('citySelect.locateMe')}</Text>
         </TouchableOpacity>
 
         <ScrollView
@@ -99,7 +111,6 @@ export default function CitySelectScreen() {
         >
           {CITIES.map((city) => {
             const isSelected = selectedId === city.id;
-            console.log(city.id);
             return (
               <TouchableOpacity
                 key={city.id}
@@ -108,10 +119,10 @@ export default function CitySelectScreen() {
                 style={styles.cityWrapper}
               >
                 <GlassCardOnLight
-                  style={[
-                    styles.cityCard,
-                    isSelected && { borderWidth: 2, borderColor: "#2DD4BF" },
-                  ]}
+                  style={{
+                    ...styles.cityCard,
+                    ...(isSelected && { borderWidth: 2, borderColor: "#2DD4BF" }),
+                  }}
                 >
                   <View style={styles.cityCardContent}>
                     <Image
@@ -136,7 +147,7 @@ export default function CitySelectScreen() {
                               ]}
                             />
                             <CaptionText style={styles.citySubtitle}>
-                              {CITY_SUBTITLES[city.id] || city.country}
+                              {t(`citySelect.subtitles.${city.id}`) || city.country}
                             </CaptionText>
                           </View>
                         </View>

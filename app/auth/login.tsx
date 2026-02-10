@@ -2,17 +2,17 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
 import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
-import { StyleSheet } from "react-native";
-import { Alert } from "react-native";
 import supabase from "@/lib/supabaseClient";
 import { AuthContext } from "@/context/authContext";
 import { CaptionText } from "@/components/ui/ThemedText";
+import { useTranslation } from "react-i18next";
 
+export default function UserLogin() {
+    const { t } = useTranslation();
 
-export default function UserRegister() {
     const [email, setEmail] = React.useState<string>("");
     const [password, setPassword] = React.useState<string>("");
     const [showPassword, setShowPassword] = React.useState<boolean>(false);
@@ -30,7 +30,7 @@ export default function UserRegister() {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert("Error", "Please fill all fields");
+            Alert.alert(t('userLogin.loginButton'), t('userLogin.fillAllFields'));
             return;
         }
 
@@ -52,22 +52,21 @@ export default function UserRegister() {
                 console.log("Logged in:", data.user.email);
 
                 if (Platform.OS === "web") {
-                    alert("Login successful!");
+                    alert(t('userLogin.loginSuccess'));
                     router.replace("/city-select");
                 } else {
-                    Alert.alert("Success", "Login successful!", [
+                    Alert.alert(t('userLogin.loginButton'), t('userLogin.loginSuccess'), [
                         { text: "OK", onPress: () => router.replace("/city-select") },
                     ]);
                 }
             }
         } catch (err) {
             console.error(err);
-            Alert.alert("Error", "Something went wrong");
+            Alert.alert(t('userLogin.loginButton'), t('userLogin.somethingWrong'));
         } finally {
             setLoading(false);
-        };
+        }
     };
-
 
     return (
         <LightScreen>
@@ -81,7 +80,11 @@ export default function UserRegister() {
                     </TouchableOpacity>
                 </View>
 
-                <SplitTitle first="Sign " second="In" style={styles.title} />
+                <SplitTitle 
+                    first={t('userLogin.signIn.first')} 
+                    second={t('userLogin.signIn.second')} 
+                    style={styles.title} 
+                />
 
                 <View style={styles.screenContainer}>
                     <View style={styles.fieldContainer}>
@@ -90,7 +93,7 @@ export default function UserRegister() {
                             contentStyle={styles.glassCardContent}
                         >
                             <TextInput
-                                placeholder="Enter the email"
+                                placeholder={t('userLogin.emailPlaceholder')}
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"
@@ -100,13 +103,14 @@ export default function UserRegister() {
                             />
                         </GlassCardOnLight>
                     </View>
+
                     <View style={styles.fieldContainer}>
                         <GlassCardOnLight
                             style={styles.glassCard}
                             contentStyle={styles.glassCardContent}
                         >
                             <TextInput
-                                placeholder="Password"
+                                placeholder={t('userLogin.passwordPlaceholder')}
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!showPassword}
@@ -123,13 +127,15 @@ export default function UserRegister() {
                             </TouchableOpacity>
                         </GlassCardOnLight>
                     </View>
-                    { isError && (
+
+                    {isError && (
                         <View style={styles.fieldContainer}>
                             <CaptionText style={styles.errorText}>
                                 {errorMessage}
                             </CaptionText>
                         </View>
                     )}
+
                     <View style={styles.fieldContainer}>
                        <TouchableOpacity 
                             style={[styles.button, loading && { opacity: 0.5 }]}
@@ -137,7 +143,7 @@ export default function UserRegister() {
                             disabled={loading}
                         >
                             <Text style={styles.buttonText}>
-                                {loading ? "Logging in..." : "Login"}
+                                {loading ? t('userLogin.loggingIn') : t('userLogin.loginButton')}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -148,9 +154,7 @@ export default function UserRegister() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
+    container: { flex: 1 },
     headerContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -188,7 +192,7 @@ const styles = StyleSheet.create({
         color: "#0F172A",
         fontSize: 16,
         paddingVertical: 4,
-        ...(Platform.OS === 'web' && { outlineStyle: 'none' })
+        ...(Platform.OS === 'web' && { outlineStyle: 'none' }),
     },
     fieldContainer: {
         marginBottom: 8,

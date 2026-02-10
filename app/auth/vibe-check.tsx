@@ -1,12 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from "react-native";
+import React, { useState, useContext } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Alert } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LightScreen } from "../components/ui/LightScreen";
-import { BodyText } from "../components/ui/ThemedText";
-import { INTERESTS } from "../constants/mockData";
+import { LightScreen } from "../../components/ui/LightScreen";
+import { BodyText } from "../../components/ui/ThemedText";
+import { INTERESTS } from "../../constants/mockData";
+import { AuthContext } from "@/context/authContext";
+import supabase from "@/lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 
-const INTEREST_IMAGES: Record<string, string> = {
+export const INTEREST_IMAGES: Record<string, string> = {
   food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400",
   culture: "https://images.unsplash.com/photo-1567596434663-f8c2d2e1e8a8?w=400",
   nightlife: "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=400",
@@ -22,7 +25,9 @@ const INTEREST_IMAGES: Record<string, string> = {
 };
 
 export default function VibeCheckScreen() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<Set<string>>(new Set(["nature", "nightlife"]));
+  const { user, setUser } = useContext(AuthContext);
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -33,8 +38,26 @@ export default function VibeCheckScreen() {
     });
   };
 
-  const handleContinue = () => {
-    router.replace("/home");
+  const handleContinue = async () => {
+    if (selected.size === 0) return Alert.alert(t("vibeCheck.selectInterest"));
+    if (!user?.id) return Alert.alert(t("vibeCheck.userNotFound"));
+
+    try {
+      const { data: updatedProfile, error } = await supabase
+        .from("users")
+        .update({ interests: Array.from(selected) })
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setUser(updatedProfile);
+      router.replace("/home");
+    } catch (err: any) {
+      console.error("Error updating user profile:", err);
+      Alert.alert(t("vibeCheck.updateFailed"));
+    }
   };
 
   return (
@@ -48,10 +71,10 @@ export default function VibeCheckScreen() {
           <View style={styles.progressFilled} />
         </View>
 
-        <Text style={styles.title}>WHAT MOVES</Text>
-        <Text style={styles.subtitle}>YOU?</Text>
+        <Text style={styles.title}>{t("vibeCheck.title")}</Text>
+        <Text style={styles.subtitle}>{t("vibeCheck.subtitle")}</Text>
         <BodyText style={styles.description}>
-          Select your interests so Nomad AI can craft your perfect adventure.
+          {t("vibeCheck.description")}
         </BodyText>
 
         <View style={styles.grid}>
@@ -83,7 +106,7 @@ export default function VibeCheckScreen() {
         </View>
 
         <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-          <Text style={styles.continueText}>LET'S GO</Text>
+          <Text style={styles.continueText}>{t("vibeCheck.continue")}</Text>
           <Text style={styles.rocket}>🚀</Text>
         </TouchableOpacity>
       </ScrollView>
