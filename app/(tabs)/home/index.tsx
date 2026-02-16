@@ -374,7 +374,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   scrollContainer: { paddingBottom: 120 },
   headerContainer: {
-    paddingHorizontal: 24, paddingTop: 56, paddingBottom: 16,
+    paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 24,
   },
   contentContainer: { paddingHorizontal: 24 },

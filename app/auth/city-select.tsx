@@ -46,8 +46,6 @@ export default function CitySelectScreen() {
 
       console.log("Updated profile:", updatedProfile);
 
-      setUser(updatedProfile);
-
       if (isNew) {
         router.replace("/auth/vibe-check");
       } else {
@@ -178,7 +176,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 56,
+    paddingTop: 24,
   },
   topBar: {
     flexDirection: "row",
@@ -190,7 +188,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   backButton: {
-    top: 56,
+    top: 24,
     left: 24,
     zIndex: 10,
     width: 40,

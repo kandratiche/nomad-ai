@@ -20,7 +20,7 @@ export default function UserRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
-  const { user, setUser } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     if (user) {
@@ -34,8 +34,6 @@ export default function UserRegister() {
   setLoading(false);
 
   if (!data) return;
-
-  setUser(data.auth);
 
   router.replace({
     pathname: "/auth/city-select",

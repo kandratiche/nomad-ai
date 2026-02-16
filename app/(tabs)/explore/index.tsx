@@ -217,7 +217,7 @@ export default function ExploreScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 56,
+    paddingTop: 24,
     paddingHorizontal: 24,
     paddingBottom: 16,
   },

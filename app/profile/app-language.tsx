@@ -134,7 +134,7 @@ export default function AppLanguageScreen() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 24,
   },
   headerContainer: {
     flexDirection: "row",

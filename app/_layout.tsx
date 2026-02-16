@@ -73,7 +73,7 @@ export default function RootLayout() {
               <Stack.Screen name="vibe-check" />
               <Stack.Screen name="timeline" />
               <Stack.Screen name="guide/[id]" />
-              <Stack.Screen name="(tabs)" options={{ animation: "slide_from_bottom" }} />
+              <Stack.Screen name="(tabs)"/>
             </Stack>
           </AuthProvider>
         </View>

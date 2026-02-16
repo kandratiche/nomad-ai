@@ -62,6 +62,7 @@ export default function ProfileScreen() {
   const handleEditProfile = () => router.push("/profile/edit-profile");
   const handleEditInterest = () => router.push("/profile/edit-interest");
   const handleChangeLanguage = () => router.push("/profile/app-language");
+  const handleMyTrips = () => router.push("/profile/my-trips");
 
   const SETTINGS_ITEMS = [
     { id: "trips", label: t("profile.myTrips"), sublabel: t("profile.viewTravelHistory"), icon: "airplane-outline" },
@@ -108,6 +109,7 @@ export default function ProfileScreen() {
                   item.highlight && styles.highlightItem,
                 ]}
                 onPress={() => 
+                  (item.id === "trips" && handleMyTrips()) ||
                   (item.id === "edit-profile" && handleEditProfile()) ||
                   (item.id === "interests" && handleEditInterest()) ||
                   (item.id === "language" && handleChangeLanguage())
@@ -155,7 +157,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 24,
-    paddingTop: 56,
+    paddingTop: 24,
     paddingBottom: 120,
   },
 

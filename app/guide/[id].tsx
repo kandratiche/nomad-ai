@@ -3,7 +3,6 @@ import { View, Text, ScrollView, Image, TouchableOpacity, Linking } from "react-
 import { BlurView } from "expo-blur";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LightScreen } from "../../components/ui/LightScreen";
 import { GlassCardOnLight } from "../../components/ui/GlassCard";
 import { BodyText, CaptionText } from "../../components/ui/ThemedText";
 import { GUIDES } from "@/constants/mockData";
@@ -22,7 +21,7 @@ export default function GuideProfileScreen() {
         <View style={{ height: 280, position: "relative" }}>
           <Image source={{ uri: guide.heroImageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
           <BlurView intensity={50} tint="dark" style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} />
-          <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, paddingTop: 56, paddingHorizontal: 24, justifyContent: "flex-end", paddingBottom: 24 }}>
+          <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, paddingTop: 24, paddingHorizontal: 24, justifyContent: "flex-end", paddingBottom: 24 }}>
             <TouchableOpacity onPress={() => router.back()} style={{ position: "absolute", top: 56, left: 24, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.3)", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="arrow-back" size={22} color="#FFF" />
             </TouchableOpacity>

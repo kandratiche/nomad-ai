@@ -117,7 +117,7 @@ export default function VibeCheckScreen() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    paddingTop: 56,
+    paddingTop: 24,
     paddingBottom: 40,
   },
   backButton: {

@@ -102,6 +102,7 @@
   "trips": {
     "welcomeBack": "WELCOME BACK",
     "noSavedTrips": "No saved trips yet",
+    "noPastTrips": "You haven't been on any trips",
     "createFromHome": "Create one from Home with the AI agent",
     "goHome": "Go to Home",
     "upcoming": "Upcoming",
@@ -172,5 +173,10 @@
     "selectInterest": "Please select at least one interest",
     "userNotFound": "User not found",
     "updateFailed": "Failed to update profile"
+  },
+  "myTrips": {
+    "titleFirst": "My",
+    "titleSecond": " Trips",
+    "noTrips": "You haven't had a single trip"
   }
 }

@@ -30,7 +30,7 @@ const safetyColor = (level: string) => {
 };
 
 export default function TimelineScreen() {
-  const { t } = useTranslation(); // Добавьте
+  const { t } = useTranslation();
   const itinerary = ALMATY_ITINERARY;
   const guideWhatsApp = "77001234567";
 
@@ -155,7 +155,7 @@ export default function TimelineScreen() {
 
 const styles = StyleSheet.create({
   topBar: {
-    paddingTop: 56,
+    paddingTop: 24,
     paddingHorizontal: 24,
     paddingBottom: 16,
     flexDirection: "row",

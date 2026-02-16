@@ -117,7 +117,7 @@ export default function EditInterestScreen() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 24,
   },
   headerContainer: {
     flexDirection: "row",
@@ -214,26 +214,15 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 16,
   },
-  saveContent: {
-    flexDirection: "column",
-    alignItems: "center",
-    padding: 20,
-    borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 1)",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-    gap: 10,
-  },
-  saveText: {
-    color: "#0F172A",
-    fontWeight: "600",
-  },
   saveButton: {
     width: "100%",
+    height: 50,
+    justifyContent: "center",
     backgroundColor: "#2DD4BF",
   },
   saveButtonText: {
     color: "#0F172A",
     fontWeight: "600",
+    fontSize: 18,
   },
 });
