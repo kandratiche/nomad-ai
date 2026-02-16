@@ -2,7 +2,7 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
 import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { registerUserApi } from "../api/authApi";
@@ -45,115 +45,120 @@ export default function UserRegister() {
 
   return (
     <LightScreen>
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#0F172A" />
-          </TouchableOpacity>
-        </View>
-
-        <SplitTitle 
-          first={t("userRegister.titleFirst")} 
-          second={t("userRegister.titleSecond")} 
-          style={styles.title} 
-        />
-
-        <View style={styles.screenContainer}>
-          <View style={styles.fieldContainer}>
-            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
-              <TextInput
-                placeholder={t("userRegister.namePlaceholder")}
-                value={name}
-                onChangeText={setName}
-                keyboardType="default"
-                autoCapitalize="none"
-                autoComplete="name"
-                style={styles.input}
-                placeholderTextColor="#94A3B8"
-                returnKeyType="next"
-                editable={!loading}
-              />
-            </GlassCardOnLight>
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
-              <TextInput
-                placeholder={t("userRegister.emailPlaceholder")}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                style={styles.input}
-                placeholderTextColor="#94A3B8"
-                returnKeyType="next"
-                editable={!loading}
-              />
-            </GlassCardOnLight>
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
-              <TextInput
-                placeholder={t("userRegister.passwordPlaceholder")}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoComplete="password"
-                placeholderTextColor="#94A3B8"
-                style={styles.input}
-                returnKeyType="next"
-                editable={!loading}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color="#94A3B8"
-                />
-              </TouchableOpacity>
-            </GlassCardOnLight>
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
-              <TextInput
-                placeholder={t("userRegister.confirmPasswordPlaceholder")}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
-                placeholderTextColor="#94A3B8"
-                returnKeyType="done"
-                style={styles.input}
-                editable={!loading}
-                onSubmitEditing={handleRegister}
-              />
-              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                <Ionicons
-                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color="#94A3B8"
-                />
-              </TouchableOpacity>
-            </GlassCardOnLight>
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={() => handleRegister()}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? t("userRegister.registering") : t("userRegister.register")}
-              </Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#0F172A" />
             </TouchableOpacity>
           </View>
+
+          <SplitTitle 
+            first={t("userRegister.titleFirst")} 
+            second={t("userRegister.titleSecond")} 
+            style={styles.title} 
+          />
+
+          <View style={styles.screenContainer}>
+            <View style={styles.fieldContainer}>
+              <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+                <TextInput
+                  placeholder={t("userRegister.namePlaceholder")}
+                  value={name}
+                  onChangeText={setName}
+                  keyboardType="default"
+                  autoCapitalize="none"
+                  autoComplete="name"
+                  style={styles.input}
+                  placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
+                  editable={!loading}
+                />
+              </GlassCardOnLight>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+                <TextInput
+                  placeholder={t("userRegister.emailPlaceholder")}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  style={styles.input}
+                  placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
+                  editable={!loading}
+                />
+              </GlassCardOnLight>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+                <TextInput
+                  placeholder={t("userRegister.passwordPlaceholder")}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  placeholderTextColor="#94A3B8"
+                  style={styles.input}
+                  returnKeyType="next"
+                  editable={!loading}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#94A3B8"
+                  />
+                </TouchableOpacity>
+              </GlassCardOnLight>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <GlassCardOnLight style={styles.glassCard} contentStyle={styles.glassCardContent}>
+                <TextInput
+                  placeholder={t("userRegister.confirmPasswordPlaceholder")}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  placeholderTextColor="#94A3B8"
+                  returnKeyType="done"
+                  style={styles.input}
+                  editable={!loading}
+                  onSubmitEditing={handleRegister}
+                />
+                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <Ionicons
+                    name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#94A3B8"
+                  />
+                </TouchableOpacity>
+              </GlassCardOnLight>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={() => handleRegister()}
+                disabled={loading}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? t("userRegister.registering") : t("userRegister.register")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </LightScreen>
   );
 }
@@ -207,7 +212,6 @@ const styles = StyleSheet.create({
   },
   screenContainer: { 
     flex: 1, 
-    justifyContent: "center", 
     alignItems: "center", 
     marginBottom: 124 
   },

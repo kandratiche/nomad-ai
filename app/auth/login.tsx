@@ -2,7 +2,7 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
 import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { loginUserApi } from "../api/authApi";
@@ -45,85 +45,90 @@ export default function UserLogin() {
 
     return (
         <LightScreen>
-            <View style={styles.container}>
-                <View style={styles.headerContainer}>
-                    <TouchableOpacity 
-                        onPress={() => { router.push('/') }} 
-                        style={styles.backButton}
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#0F172A" />
-                    </TouchableOpacity>
-                </View>
-
-                <SplitTitle 
-                    first={t('userLogin.signIn.first')} 
-                    second={t('userLogin.signIn.second')} 
-                    style={styles.title} 
-                />
-
-                <View style={styles.screenContainer}>
-                    <View style={styles.fieldContainer}>
-                        <GlassCardOnLight
-                            style={styles.glassCard}
-                            contentStyle={styles.glassCardContent}
+            <KeyboardAvoidingView 
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}    
+            >
+                <View style={styles.container}>
+                    <View style={styles.headerContainer}>
+                        <TouchableOpacity 
+                            onPress={() => { router.push('/') }} 
+                            style={styles.backButton}
                         >
-                            <TextInput
-                                placeholder={t('userLogin.emailPlaceholder')}
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                style={styles.input}
-                                placeholderTextColor="#94A3B8"
-                                returnKeyType="send"
-                            />
-                        </GlassCardOnLight>
-                    </View>
-
-                    <View style={styles.fieldContainer}>
-                        <GlassCardOnLight
-                            style={styles.glassCard}
-                            contentStyle={styles.glassCardContent}
-                        >
-                            <TextInput
-                                placeholder={t('userLogin.passwordPlaceholder')}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={!showPassword}
-                                style={styles.input}
-                                placeholderTextColor="#94A3B8"
-                                returnKeyType="send"
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                <Ionicons 
-                                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                                    size={20} 
-                                    color="#94A3B8" 
-                                />
-                            </TouchableOpacity>
-                        </GlassCardOnLight>
-                    </View>
-
-                    {isError && (
-                        <View style={styles.fieldContainer}>
-                            <CaptionText style={styles.errorText}>
-                                {errorMessage}
-                            </CaptionText>
-                        </View>
-                    )}
-
-                    <View style={styles.fieldContainer}>
-                       <TouchableOpacity 
-                            style={[styles.button, loading && { opacity: 0.5 }]}
-                            onPress={handleLogin}
-                            disabled={loading}
-                        >
-                            <Text style={styles.buttonText}>
-                                {loading ? t('userLogin.loggingIn') : t('userLogin.loginButton')}
-                            </Text>
+                            <Ionicons name="arrow-back" size={24} color="#0F172A" />
                         </TouchableOpacity>
                     </View>
+
+                    <SplitTitle 
+                        first={t('userLogin.signIn.first')} 
+                        second={t('userLogin.signIn.second')} 
+                        style={styles.title} 
+                    />
+
+                    <View style={styles.screenContainer}>
+                        <View style={styles.fieldContainer}>
+                            <GlassCardOnLight
+                                style={styles.glassCard}
+                                contentStyle={styles.glassCardContent}
+                            >
+                                <TextInput
+                                    placeholder={t('userLogin.emailPlaceholder')}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    style={styles.input}
+                                    placeholderTextColor="#94A3B8"
+                                    returnKeyType="send"
+                                />
+                            </GlassCardOnLight>
+                        </View>
+
+                        <View style={styles.fieldContainer}>
+                            <GlassCardOnLight
+                                style={styles.glassCard}
+                                contentStyle={styles.glassCardContent}
+                            >
+                                <TextInput
+                                    placeholder={t('userLogin.passwordPlaceholder')}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    secureTextEntry={!showPassword}
+                                    style={styles.input}
+                                    placeholderTextColor="#94A3B8"
+                                    returnKeyType="send"
+                                />
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                    <Ionicons 
+                                        name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                        size={20} 
+                                        color="#94A3B8" 
+                                    />
+                                </TouchableOpacity>
+                            </GlassCardOnLight>
+                        </View>
+
+                        {isError && (
+                            <View style={styles.fieldContainer}>
+                                <CaptionText style={styles.errorText}>
+                                    {errorMessage}
+                                </CaptionText>
+                            </View>
+                        )}
+
+                        <View style={styles.fieldContainer}>
+                        <TouchableOpacity 
+                                style={[styles.button, loading && { opacity: 0.5 }]}
+                                onPress={handleLogin}
+                                disabled={loading}
+                            >
+                                <Text style={styles.buttonText}>
+                                    {loading ? t('userLogin.loggingIn') : t('userLogin.loginButton')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </LightScreen>
     );
 }
@@ -175,7 +180,6 @@ const styles = StyleSheet.create({
     },
     screenContainer: {
         flex: 1,
-        justifyContent: "center",
         alignItems: "center",
         marginBottom: 124,
     },
