@@ -20,7 +20,7 @@ npx expo start
 # Then: npx expo start --ios  or  npx expo start --android
 ```
 
-## Project structure
+## Project structure (could be changed)
 
 ```
 nomad-ai/
