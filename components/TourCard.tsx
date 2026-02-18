@@ -26,7 +26,7 @@ export function TourCard({ tour, onPress }: Props) {
           <Image source={{ uri: tour.image_url }} style={styles.image} resizeMode="cover" />
         ) : (
           <View style={[styles.image, styles.imagePlaceholder]}>
-            <Crown size={32} color="#FFBF00" />
+            <Crown size={32} color="#2DD4BF" />
           </View>
         )}
 
@@ -60,7 +60,7 @@ export function TourCard({ tour, onPress }: Props) {
               <Image source={{ uri: tour.guide_avatar }} style={styles.guideAvatar} />
             ) : (
               <View style={[styles.guideAvatar, { backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center" }]}>
-                <Text style={{ color: "#FFBF00", fontWeight: "700", fontSize: 12 }}>
+                <Text style={{ color: "#2DD4BF", fontWeight: "700", fontSize: 12 }}>
                   {(tour.guide_name || "G")[0]}
                 </Text>
               </View>
@@ -81,22 +81,22 @@ export function TourCard({ tour, onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 20 },
+  wrapper: { marginBottom: 20, },
   image: { width: "100%", height: 160 },
   imagePlaceholder: {
     backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center",
   },
-  content: { padding: 16, gap: 10 },
+  content: { padding: 16, gap: 10, },
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { flex: 1, fontSize: 18, fontWeight: "800", color: "#FFF", marginRight: 8 },
+  title: { flex: 1, fontSize: 18, fontWeight: "800", color: "black", marginRight: 8 },
   metaRow: { flexDirection: "row", gap: 16 },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { color: "#94A3B8", fontSize: 13 },
-  description: { color: "#CBD5E1", fontSize: 13, lineHeight: 18 },
+  metaText: { color: "black", fontSize: 13 },
+  description: { color: "black", fontSize: 13, lineHeight: 18 },
   priceRow: { flexDirection: "row", alignItems: "baseline", gap: 4 },
-  priceLabel: { color: "#64748B", fontSize: 12 },
-  price: { color: "#FFBF00", fontSize: 22, fontWeight: "800" },
+  priceLabel: { color: "black", fontSize: 12 },
+  price: { color: "#2DD4BF", fontSize: 22, fontWeight: "800" },
   guideRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  guideAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: "#FFBF00" },
-  guideName: { color: "#E2E8F0", fontSize: 13, fontWeight: "600" },
+  guideAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: "#2DD4BF" },
+  guideName: { color: "black", fontSize: 13, fontWeight: "600" },
 });

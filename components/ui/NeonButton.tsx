@@ -22,9 +22,9 @@ interface Props {
 }
 
 const VARIANTS = {
-  gold: { bg: "#FFBF00", text: "#0F172A", shadow: "#FFBF00" },
+  gold: { bg: "#2DD4BF", text: "#0F172A", shadow: "#2DD4BF" },
   teal: { bg: "#2DD4BF", text: "#0F172A", shadow: "#2DD4BF" },
-  dark: { bg: "#1E293B", text: "#FFF", shadow: "#1E293B" },
+  dark: { bg: "#2DD4BF", text: "#FFF", shadow: "#2DD4BF" },
 };
 
 export function NeonButton({ title, onPress, icon, variant = "gold", loading, disabled, style }: Props) {

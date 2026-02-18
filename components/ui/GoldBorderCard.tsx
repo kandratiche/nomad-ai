@@ -41,17 +41,21 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   innerCard: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "white",
     borderRadius: 20,
     overflow: "hidden",
   },
   card: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "white",
     borderRadius: 20,
     overflow: "hidden",
   },
   normalBorder: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
+  shadowColor: "#2DD4BF",
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.6,
+  shadowRadius: 10,
+
+  elevation: 6,
+},
 });

@@ -113,17 +113,17 @@ export default function TourDetailsScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2DD4BF" />}
       >
         <View style={styles.imageContainer}>
           {tour.image_url ? (
             <Image source={{ uri: tour.image_url }} style={styles.heroImage} resizeMode="cover" />
           ) : (
             <View style={[styles.heroImage, styles.imagePlaceholder]}>
-              <Crown size={48} color="#FFBF00" />
+              <Crown size={48} color="#2DD4BF" />
             </View>
           )}
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.replace("/explore")} style={styles.backButton}>
             <Ionicons name="arrow-back" size={22} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
@@ -145,15 +145,15 @@ export default function TourDetailsScreen() {
 
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <MapPin size={16} color="#FFBF00" />
+              <MapPin size={16} color="#2DD4BF" />
               <Text style={styles.metaText}>{tour.city}</Text>
             </View>
             <View style={styles.metaItem}>
-              <Clock size={16} color="#FFBF00" />
+              <Clock size={16} color="#2DD4BF" />
               <Text style={styles.metaText}>{tour.duration_hours}h</Text>
             </View>
             <View style={styles.metaItem}>
-              <Users size={16} color="#FFBF00" />
+              <Users size={16} color="#2DD4BF" />
               <Text style={styles.metaText}>max {tour.max_people}</Text>
             </View>
           </View>
@@ -197,7 +197,7 @@ export default function TourDetailsScreen() {
               <Image source={{ uri: tour.guide_avatar }} style={styles.guideAvatar} />
             ) : (
               <View style={[styles.guideAvatar, styles.guideAvatarPlaceholder]}>
-                <Text style={{ color: "#FFBF00", fontWeight: "700" }}>{(tour.guide_name || "G")[0]}</Text>
+                <Text style={{ color: "#2DD4BF", fontWeight: "700" }}>{(tour.guide_name || "G")[0]}</Text>
               </View>
             )}
             <View style={{ flex: 1 }}>
@@ -213,7 +213,7 @@ export default function TourDetailsScreen() {
               <Text style={styles.sectionTitle}>{t("tour.reviews")} ({reviews.length})</Text>
               {alreadyJoined && myStatus === "paid" && (
                 <TouchableOpacity onPress={() => setShowReviewModal(true)} style={styles.writeReviewBtn}>
-                  <Ionicons name="star" size={14} color="#FFBF00" />
+                  <Ionicons name="star" size={14} color="#2DD4BF" />
                   <Text style={styles.writeReviewText}>{t("tour.writeReview")}</Text>
                 </TouchableOpacity>
               )}
@@ -229,7 +229,7 @@ export default function TourDetailsScreen() {
                       key={s}
                       name="star"
                       size={14}
-                      color={s <= Math.round(reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) ? "#FFBF00" : "#334155"}
+                      color={s <= Math.round(reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) ? "#2DD4BF" : "#334155"}
                     />
                   ))}
                 </View>
@@ -243,14 +243,14 @@ export default function TourDetailsScreen() {
                     <Image source={{ uri: r.user_avatar }} style={{ width: 28, height: 28, borderRadius: 14 }} />
                   ) : (
                     <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ color: "#FFBF00", fontSize: 11, fontWeight: "700" }}>{(r.user_name || "U")[0]}</Text>
+                      <Text style={{ color: "#2DD4BF", fontSize: 11, fontWeight: "700" }}>{(r.user_name || "U")[0]}</Text>
                     </View>
                   )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.reviewName}>{r.user_name}</Text>
                     <View style={{ flexDirection: "row", gap: 1 }}>
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <Ionicons key={s} name="star" size={10} color={s <= r.rating ? "#FFBF00" : "#334155"} />
+                        <Ionicons key={s} name="star" size={10} color={s <= r.rating ? "#2DD4BF" : "#334155"} />
                       ))}
                     </View>
                   </View>
@@ -280,7 +280,7 @@ export default function TourDetailsScreen() {
                     <Image source={{ uri: p.user_avatar }} style={styles.participantAvatar} />
                   ) : (
                     <View style={[styles.participantAvatar, { backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center" }]}>
-                      <Text style={{ color: "#FFBF00", fontWeight: "700", fontSize: 12 }}>{(p.user_name || "U")[0]}</Text>
+                      <Text style={{ color: "#2DD4BF", fontWeight: "700", fontSize: 12 }}>{(p.user_name || "U")[0]}</Text>
                     </View>
                   )}
                   <View style={{ flex: 1 }}>
@@ -334,7 +334,7 @@ export default function TourDetailsScreen() {
               ) : (
                 <>
                   <View style={[styles.statusIconWrap, { backgroundColor: "rgba(255,191,0,0.1)" }]}>
-                    <Ionicons name="time" size={24} color="#FFBF00" />
+                    <Ionicons name="time" size={24} color="#2DD4BF" />
                   </View>
                   <View>
                     <Text style={styles.pendingText}>{t("tour.requestSent")}</Text>
@@ -357,7 +357,7 @@ export default function TourDetailsScreen() {
                 style={{ flex: 1 }}
               />
               <TouchableOpacity onPress={handleShare} style={styles.shareBottomButton}>
-                <Share2 size={22} color="#FFBF00" />
+                <Share2 size={22} color="#2DD4BF" />
               </TouchableOpacity>
             </View>
           )}
@@ -384,7 +384,7 @@ export default function TourDetailsScreen() {
       <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Crown size={32} color="#FFBF00" />
+            <Crown size={32} color="#2DD4BF" />
             <Text style={styles.modalTitle}>{t("tour.joinTour")}</Text>
             <Text style={styles.modalDesc}>
               Ты подаёшь заявку на тур "{tour.title}".{"\n"}
@@ -453,12 +453,12 @@ export default function TourDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#0F172A" },
+  screen: { flex: 1, backgroundColor: "white" },
   center: { alignItems: "center", justifyContent: "center" },
   scrollContent: { paddingBottom: 120 },
   notFound: { color: "#64748B", fontSize: 16, marginTop: 12 },
   backLink: { marginTop: 16, backgroundColor: "#1E293B", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
-  backLinkText: { color: "#FFF", fontWeight: "600" },
+  backLinkText: { color: "black", fontWeight: "600" },
 
   imageContainer: { height: 280, position: "relative" },
   heroImage: { width: "100%", height: "100%" },
@@ -473,56 +473,62 @@ const styles = StyleSheet.create({
   },
   premiumBadge: {
     position: "absolute", bottom: 16, left: 16, flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#FFBF00", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10,
+    backgroundColor: "#2DD4BF", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10,
   },
   premiumText: { color: "#0F172A", fontWeight: "800", fontSize: 11, letterSpacing: 1 },
 
   content: { padding: 24 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
-  title: { flex: 1, fontSize: 24, fontWeight: "800", color: "#FFF", letterSpacing: -0.5 },
+  title: { 
+    flex: 1, 
+    fontSize: 24, 
+    fontWeight: "800", 
+    color: "#0F172A",
+    letterSpacing: -0.5 
+  },
   metaRow: { flexDirection: "row", gap: 20, marginBottom: 8 },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  metaText: { color: "#CBD5E1", fontSize: 14 },
+  metaText: { color: "#475569", fontSize: 14 },
   dateRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   dateText: { color: "#A78BFA", fontSize: 14, fontWeight: "600" },
-  description: { color: "#CBD5E1", fontSize: 14, lineHeight: 22 },
+  description: { color: "#334155", fontSize: 14, lineHeight: 22 },
 
   priceCard: {
     marginTop: 20, backgroundColor: "rgba(255,191,0,0.06)", borderRadius: 16,
     padding: 16, borderWidth: 1, borderColor: "rgba(255,191,0,0.15)",
   },
-  priceLabel: { color: "#FFBF00", fontSize: 11, fontWeight: "700", letterSpacing: 1 },
+  priceLabel: { color: "#2DD4BF", fontSize: 11, fontWeight: "700", letterSpacing: 1 },
   priceRow: { flexDirection: "row", alignItems: "baseline", gap: 4, marginTop: 4 },
-  priceValue: { color: "#FFF", fontSize: 36, fontWeight: "800" },
-  priceCurrency: { color: "#FFBF00", fontSize: 20, fontWeight: "700" },
+  priceValue: { color: "#0F172A", fontSize: 36, fontWeight: "800" },
+  priceCurrency: { color: "#2DD4BF", fontSize: 20, fontWeight: "700" },
   priceTotal: { color: "#64748B", fontSize: 13, marginTop: 4 },
 
   partySection: { marginTop: 24 },
-  sectionTitle: { color: "#FFBF00", fontSize: 12, fontWeight: "700", letterSpacing: 1, marginBottom: 12 },
+  sectionTitle: { color: "#2DD4BF", fontSize: 12, fontWeight: "700", letterSpacing: 1, marginBottom: 12 },
 
   guideCard: {
     flexDirection: "row", alignItems: "center", gap: 12, marginTop: 24,
     backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 16, padding: 14,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.06)",
   },
-  guideAvatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: "#FFBF00" },
+  guideAvatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: "#2DD4BF" },
   guideAvatarPlaceholder: { backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center" },
-  guideName: { color: "#FFF", fontWeight: "700", fontSize: 15 },
+  guideName: { color: "#0F172A", fontWeight: "700", fontSize: 15 },
   guideLabel: { color: "#64748B", fontSize: 12 },
 
   tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 20 },
   tag: { backgroundColor: "rgba(255,191,0,0.1)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
-  tagText: { color: "#FFBF00", fontSize: 12, fontWeight: "600" },
+  tagText: { color: "#2DD4BF", fontSize: 12, fontWeight: "600" },
 
   bottomBar: {
     position: "absolute", bottom: 0, left: 0, right: 0,
     padding: 20, paddingBottom: 36,
-    backgroundColor: "rgba(15,23,42,0.95)", borderTopWidth: 1, borderTopColor: "rgba(255,191,0,0.15)",
+    backgroundColor: "rgb(255,255,255)", borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.15)",
   },
   bottomActions: { flexDirection: "row", gap: 12 },
   shareBottomButton: {
-    width: 56, height: 56, borderRadius: 16, backgroundColor: "rgba(255,191,0,0.1)",
-    alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,191,0,0.3)",
+    width: 56, height: 56, borderRadius: 16, backgroundColor: "#2dd4be11",
+    alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#2dd4be62",
   },
   joinedRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 8 },
   statusRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 4 },
@@ -531,7 +537,7 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   joinedText: { color: "#10B981", fontWeight: "700", fontSize: 16 },
-  pendingText: { color: "#FFBF00", fontWeight: "700", fontSize: 16 },
+  pendingText: { color: "#2DD4BF", fontWeight: "700", fontSize: 16 },
   joinedSub: { color: "#64748B", fontSize: 12, marginTop: 2 },
   fullText: { color: "#64748B", fontWeight: "800", fontSize: 14, letterSpacing: 1 },
 
@@ -541,14 +547,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 14, padding: 12,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.06)",
   },
-  participantAvatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: "#FFBF00" },
-  participantName: { color: "#FFF", fontWeight: "600", fontSize: 14 },
+  participantAvatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: "#2DD4BF" },
+  participantName: { color: "#0F172A", fontWeight: "600", fontSize: 14 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, alignSelf: "flex-start", marginTop: 4 },
   statusConfirmed: { backgroundColor: "rgba(16,185,129,0.15)" },
   statusPending: { backgroundColor: "rgba(255,191,0,0.15)" },
   statusText: { fontSize: 11, fontWeight: "700" },
   statusTextConfirmed: { color: "#10B981" },
-  statusTextPending: { color: "#FFBF00" },
+  statusTextPending: { color: "#2DD4BF" },
   actionButtons: { flexDirection: "row", gap: 8 },
   confirmBtn: {
     width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(16,185,129,0.15)",
@@ -563,14 +569,14 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: "rgba(0,0,0,0.7)", alignItems: "center", justifyContent: "center", padding: 24,
   },
   modalCard: {
-    backgroundColor: "#0F172A", borderRadius: 24, padding: 28, width: "100%", maxWidth: 380,
+    backgroundColor: "white", borderRadius: 24, padding: 28, width: "100%", maxWidth: 380,
     alignItems: "center", gap: 16, borderWidth: 1, borderColor: "rgba(255,191,0,0.2)",
   },
-  modalTitle: { color: "#FFF", fontSize: 20, fontWeight: "800" },
+  modalTitle: { color: "#0F172A", fontSize: 20, fontWeight: "800" },
   modalDesc: { color: "#94A3B8", fontSize: 14, textAlign: "center", lineHeight: 20 },
   modalPriceRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   modalPriceLabel: { color: "#64748B", fontSize: 14 },
-  modalPrice: { color: "#FFBF00", fontSize: 18, fontWeight: "800" },
+  modalPrice: { color: "#2DD4BF", fontSize: 18, fontWeight: "800" },
   modalCancel: { paddingVertical: 8 },
   modalCancelText: { color: "#64748B", fontSize: 14, fontWeight: "600" },
 
@@ -579,15 +585,15 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", gap: 4,
     backgroundColor: "rgba(255,191,0,0.1)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12,
   },
-  writeReviewText: { color: "#FFBF00", fontSize: 12, fontWeight: "600" },
+  writeReviewText: { color: "#2DD4BF", fontSize: 12, fontWeight: "600" },
   ratingOverview: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 },
-  ratingBig: { color: "#FFBF00", fontSize: 28, fontWeight: "800" },
+  ratingBig: { color: "#2DD4BF", fontSize: 28, fontWeight: "800" },
   ratingCount: { color: "#64748B", fontSize: 12 },
   reviewCard: {
     backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 14, padding: 14, marginBottom: 10,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.05)",
   },
-  reviewName: { color: "#FFF", fontWeight: "600", fontSize: 13 },
+  reviewName: { color: "#0F172A", fontWeight: "600", fontSize: 13 },
   reviewDate: { color: "#475569", fontSize: 11 },
   reviewText: { color: "#CBD5E1", fontSize: 13, lineHeight: 19 },
   chatFloatBtn: {

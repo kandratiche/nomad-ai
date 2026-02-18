@@ -97,34 +97,34 @@ export function PartyProgress({ current, max, priceTotal, participants = [] }: P
 
 const styles = StyleSheet.create({
   container: { gap: 10 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  header: { flexDirection: "row", justifyContent: "space-between", gap: 16, alignItems: "center" },
   countRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  countText: { color: "#FFF", fontWeight: "700", fontSize: 14 },
-  priceHint: { color: "#94A3B8", fontSize: 12 },
-  priceGold: { color: "#FFBF00", fontWeight: "800" },
+  countText: { color: "black", fontWeight: "700", fontSize: 14 },
+  priceHint: { color: "black", fontSize: 12 },
+  priceGold: { color: "#2DD4BF", fontWeight: "800" },
   fullText: { color: "#10B981", fontWeight: "800", fontSize: 12, letterSpacing: 1 },
   barBg: {
     height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.1)", overflow: "hidden",
   },
   barFill: {
     height: "100%", borderRadius: 4,
-    backgroundColor: "#FFBF00",
+    backgroundColor: "#2DD4BF",
   },
-  currentPrice: { color: "#64748B", fontSize: 12 },
+  currentPrice: { color: "black", fontSize: 12 },
   avatarRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
   avatarWrap: {},
   avatar: {
-    width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: "#FFBF00",
+    width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: "#2DD4BF",
   },
   avatarPlaceholder: {
     backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center",
   },
-  avatarInitial: { color: "#FFBF00", fontWeight: "700", fontSize: 13 },
+  avatarInitial: { color: "#2DD4BF", fontWeight: "700", fontSize: 13 },
   avatarMore: {
     backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center",
     borderColor: "#475569",
   },
-  avatarMoreText: { color: "#94A3B8", fontWeight: "600", fontSize: 11 },
+  avatarMoreText: { color: "black", fontWeight: "600", fontSize: 11 },
   squadBadge: {
     paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8,
     borderWidth: 1, marginLeft: 6,
