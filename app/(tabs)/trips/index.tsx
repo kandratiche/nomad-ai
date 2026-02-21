@@ -71,7 +71,7 @@ export default function TripsScreen() {
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
                             <Text style={styles.tripCity}>{b.tour_city}</Text>
                             <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>
-                              · {Math.round(b.tour_price / b.tour_max_people).toLocaleString()} ₸
+                              · {Math.round(b.tour_price).toLocaleString()} ₸
                             </Text>
                           </View>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>

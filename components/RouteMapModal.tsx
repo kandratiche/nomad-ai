@@ -42,47 +42,50 @@ function buildLeafletHTML(
     lng: validStops.reduce((s, p) => s + (p.longitude || 0), 0) / validStops.length,
   };
 
-  const markersJS = validStops
-    .map((stop, i) => {
-      const color = COLORS[i % COLORS.length];
-      const segment = route?.segments?.[i - 1];
-      const segInfo = segment
-        ? `<br/><small style="color:#7C3AED">${mode === "car" ? "🚗" : "🚶"} ${formatDuration(segment.durationMinutes)} · ${formatKm(segment.distanceKm)}</small>`
-        : "";
-      return `
-        L.circleMarker([${stop.latitude}, ${stop.longitude}], {
-          radius: 14, fillColor: '${color}', color: '#fff', weight: 3, fillOpacity: 1
-        }).addTo(map)
-          .bindPopup('<b>${(i + 1)}. ${stop.title.replace(/'/g, "\\'")}</b>${stop.time ? "<br/>" + stop.time : ""}${segInfo}');
-        L.marker([${stop.latitude}, ${stop.longitude}], {
-          icon: L.divIcon({
-            className: 'num-icon',
-            html: '<div style="color:#fff;font-weight:800;font-size:12px;text-align:center;line-height:28px">${i + 1}</div>',
-            iconSize: [28, 28], iconAnchor: [14, 14]
-          })
-        }).addTo(map);`;
-    })
-    .join("\n");
+    const markersJS = validStops
+        .map((stop, i) => {
+            const color = COLORS[i % COLORS.length];
+            const segment = route?.segments?.[i - 1];
+            const dur = segment ? formatDuration(mode === "foot" ? segment.durationMinutes * 10 : segment.durationMinutes) : "";
+            const segInfo = segment
+                ? `<br/><small style="color:#7C3AED">${mode === "car" ? "🚗" : "🚶"} ${dur} · ${formatKm(segment.distanceKm)}</small>`
+                : "";
+
+            return `
+          L.circleMarker([${stop.latitude}, ${stop.longitude}], {
+            radius: 14, fillColor: '${color}', color: '#fff', weight: 3, fillOpacity: 1
+          }).addTo(map)
+            .bindPopup('<b>${(i + 1)}. ${stop.title.replace(/'/g, "\\'")}</b>${stop.time ? "<br/>" + stop.time : ""}${segInfo}');
+          L.marker([${stop.latitude}, ${stop.longitude}], {
+            icon: L.divIcon({
+              className: 'num-icon',
+              html: '<div style="color:#fff;font-weight:800;font-size:12px;text-align:center;line-height:28px">${i + 1}</div>',
+              iconSize: [28, 28], iconAnchor: [14, 14]
+            })
+          }).addTo(map);`;
+        })
+        .join("\n");
 
   // Segment time badges between stops
-  const badgesJS = (route?.segments || [])
-    .map((seg, i) => {
-      const fromStop = validStops[i];
-      const toStop = validStops[i + 1];
-      if (!fromStop || !toStop) return "";
-      const midLat = ((fromStop.latitude || 0) + (toStop.latitude || 0)) / 2;
-      const midLng = ((fromStop.longitude || 0) + (toStop.longitude || 0)) / 2;
-      const icon = mode === "car" ? "🚗" : "🚶";
-      return `
-        L.marker([${midLat}, ${midLng}], {
-          icon: L.divIcon({
-            className: 'time-badge',
-            html: '<div style="background:#7C3AED;color:#fff;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.2)">${icon} ${formatDuration(seg.durationMinutes)}</div>',
-            iconSize: [80, 24], iconAnchor: [40, 12]
-          })
-        }).addTo(map);`;
-    })
-    .join("\n");
+    const badgesJS = (route?.segments || [])
+        .map((seg, i) => {
+            const fromStop = validStops[i];
+            const toStop = validStops[i + 1];
+            if (!fromStop || !toStop) return "";
+            const midLat = ((fromStop.latitude || 0) + (toStop.latitude || 0)) / 2;
+            const midLng = ((fromStop.longitude || 0) + (toStop.longitude || 0)) / 2;
+            const icon = mode === "car" ? "🚗" : "🚶";
+            const dur = formatDuration(mode === "foot" ? seg.durationMinutes * 10 : seg.durationMinutes);
+            return `
+      L.marker([${midLat}, ${midLng}], {
+        icon: L.divIcon({
+          className: 'time-badge',
+          html: '<div style="background:#7C3AED;color:#fff;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.2)">${icon} ${dur}</div>',
+          iconSize: [80, 24], iconAnchor: [40, 12]
+        })
+      }).addTo(map);`;
+        })
+        .join("\n");
 
   // Use real route geometry or fallback to straight lines
   let polylineJS: string;
@@ -128,7 +131,6 @@ function buildLeafletHTML(
 </body>
 </html>`;
 }
-
 export default function RouteMapModal({ visible, stops, onClose }: Props) {
   const [mode, setMode] = useState<TravelMode>("foot");
   const [route, setRoute] = useState<FullRoute | null>(null);
@@ -154,7 +156,9 @@ export default function RouteMapModal({ visible, stops, onClose }: Props) {
   }, [visible, validStops, mode]);
 
   const html = useMemo(() => buildLeafletHTML(stops, route, mode), [stops, route, mode]);
-
+  const duration = route
+    ? formatDuration(mode === "foot" ? route.totalDurationMinutes * 10 : route.totalDurationMinutes)
+    : ""
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={styles.container}>
@@ -186,7 +190,7 @@ export default function RouteMapModal({ visible, stops, onClose }: Props) {
           {route && (
             <View style={styles.totalBadge}>
               <Text style={styles.totalText}>
-                {formatDuration(route.totalDurationMinutes)} · {formatKm(route.totalDistanceKm)}
+                {duration} · {formatKm(route.totalDistanceKm)}
               </Text>
             </View>
           )}
@@ -237,9 +241,16 @@ export default function RouteMapModal({ visible, stops, onClose }: Props) {
                         size={12}
                         color="#7C3AED"
                       />
-                      <Text style={styles.segmentText}>
-                        {formatDuration(segment.durationMinutes)} · {formatKm(segment.distanceKm)}
-                      </Text>
+                      {mode === "foot" ? (
+                          <Text style={styles.segmentText}>
+                            {formatDuration(segment.durationMinutes * 10)} · {formatKm(segment.distanceKm)}
+                          </Text>
+
+                      ) : (
+                          <Text style={styles.segmentText}>
+                              {formatDuration(segment.durationMinutes)} · {formatKm(segment.distanceKm)}
+                          </Text>
+                      )}
                     </View>
                   </View>
                 )}
