@@ -58,6 +58,7 @@ export async function getRoute(
   waypoints: { latitude: number; longitude: number }[],
   mode: TravelMode = "foot",
 ): Promise<FullRoute | null> {
+
   if (waypoints.length < 2) return null;
 
   const profile = mode === "car" ? "car" : "foot";
@@ -67,7 +68,10 @@ export async function getRoute(
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(url, { signal: controller.signal });
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
     clearTimeout(timeout);
 
     if (!res.ok) return null;
