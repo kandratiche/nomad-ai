@@ -2,11 +2,11 @@ import React, { useContext, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View, Text, ScrollView, Image, TouchableOpacity, StyleSheet,
-  Share, Platform, Alert, ActivityIndicator, Modal, TextInput, RefreshControl,
+  Share, Platform, Alert, ActivityIndicator, Modal, TextInput, RefreshControl, Linking,
 } from "react-native";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { MapPin, Clock, Users, Share2, Crown, Calendar, CheckCircle, XCircle } from "lucide-react-native";
+import { MapPin, Clock, Users, Share2, Crown, Calendar, CheckCircle, XCircle, Instagram, Navigation, Tag } from "lucide-react-native";
 import { AuthContext } from "@/context/authContext";
 import { GoldBorderCard } from "@/components/ui/GoldBorderCard";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
@@ -29,6 +29,7 @@ export default function TourDetailsScreen() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { t } = useTranslation();
 
   useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
@@ -60,7 +61,8 @@ export default function TourDetailsScreen() {
   }
 
   const isPremium = tour.is_premium || tour.guide_verified;
-  const priceTotal = tour.max_people > 0 ? Math.round(tour.price_per_person * tour.max_people) : tour.price_per_person;
+  const isPartnerTour = !!tour.partner_name;
+  const pricePerPerson = isPartnerTour ? (tour.price_per_person || 0) : (tour.max_people > 0 ? Math.round((tour.price_per_person || 0) / tour.max_people) : (tour.price_per_person || 0));
   const myParticipation = tour.participants?.find((p) => p.user_id === user?.id && p.status !== "cancelled");
   const alreadyJoined = !!myParticipation;
   const myStatus = myParticipation?.status;
@@ -100,7 +102,7 @@ export default function TourDetailsScreen() {
 
   const handleShare = async () => {
     const deepLink = `nomadai://tour/${tour.id}`;
-    const message = `🌟 ${tour.title}\n📍 ${tour.city} · ${tour.duration_hours}h\n💰 from ${tour.price_per_person.toLocaleString()} ₸/person\n\nJoin my squad! ${deepLink}`;
+    const message = `🌟 ${tour.title}\n📍 ${tour.city} · ${tour.duration_hours}h\n💰 from ${pricePerPerson.toLocaleString()} ₸/person\n\nJoin my squad! ${deepLink}`;
     try {
       await Share.share({ message, title: tour.title });
     } catch {}
@@ -173,13 +175,126 @@ export default function TourDetailsScreen() {
             </View>
           </GoldBorderCard>
 
+          {tour.partner_name && (
+            <TouchableOpacity
+              style={styles.partnerBadge}
+              onPress={() => tour.partner_instagram && Linking.openURL(tour.partner_instagram)}
+              activeOpacity={tour.partner_instagram ? 0.7 : 1}
+            >
+              <View style={styles.partnerLeft}>
+                <View style={styles.partnerIcon}>
+                  <Crown size={16} color="#FFF" />
+                </View>
+                <View>
+                  <Text style={styles.partnerName}>{tour.partner_name}</Text>
+                  <Text style={styles.partnerLabel}>Партнёр</Text>
+                </View>
+              </View>
+              {tour.partner_instagram && (
+                <View style={styles.instagramBtn}>
+                  <Instagram size={16} color="#E1306C" />
+                  <Text style={styles.instagramText}>Instagram</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {tour.itinerary && tour.itinerary.length > 0 && (
+            <View style={styles.itinerarySection}>
+              <Text style={styles.sectionTitle}>ПРОГРАММА ТУРА</Text>
+              {tour.itinerary.map((item, idx) => {
+                const showDayHeader = item.day && (idx === 0 || tour.itinerary![idx - 1]?.day !== item.day);
+                return (
+                  <React.Fragment key={idx}>
+                    {showDayHeader && (
+                      <View style={styles.dayHeader}>
+                        <Text style={styles.dayHeaderText}>День {item.day}</Text>
+                      </View>
+                    )}
+                    <View style={styles.itineraryItem}>
+                      <View style={styles.itineraryDot} />
+                      {item.time && <Text style={styles.itineraryTime}>{item.time}</Text>}
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.itineraryTitle}>{item.title}</Text>
+                        {item.desc && <Text style={styles.itineraryDesc}>{item.desc}</Text>}
+                      </View>
+                    </View>
+                  </React.Fragment>
+                );
+              })}
+            </View>
+          )}
+
+          {tour.included && tour.included.length > 0 && (
+            <View style={styles.includedSection}>
+              <Text style={styles.sectionTitle}>ВКЛЮЧЕНО В СТОИМОСТЬ</Text>
+              <View style={styles.includedChips}>
+                {tour.included.map((item, idx) => (
+                  <View key={idx} style={styles.includedChip}>
+                    <CheckCircle size={12} color="#10B981" />
+                    <Text style={styles.includedChipText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {tour.available_dates && tour.available_dates.length > 0 && (
+            <View style={styles.datesSection}>
+              <Text style={styles.sectionTitle}>ВЫБЕРИТЕ ДАТУ</Text>
+              <View style={styles.datesChips}>
+                {tour.available_dates.map((d, idx) => {
+                  const isSelected = selectedDate === d;
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.dateChip, isSelected && styles.dateChipSelected]}
+                      onPress={() => setSelectedDate(isSelected ? null : d)}
+                      activeOpacity={0.7}
+                    >
+                      <Calendar size={12} color={isSelected ? "#FFF" : "#A78BFA"} />
+                      <Text style={[styles.dateChipText, isSelected && styles.dateChipTextSelected]}>{d}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          {(tour.pickup_location || tour.pickup_time) && (
+            <View style={styles.pickupSection}>
+              <Text style={styles.sectionTitle}>ТОЧКА СБОРА</Text>
+              <View style={styles.pickupCard}>
+                <Navigation size={18} color="#2DD4BF" />
+                <View style={{ flex: 1 }}>
+                  {tour.pickup_time && (
+                    <Text style={styles.pickupTime}>{tour.pickup_time}</Text>
+                  )}
+                  {tour.pickup_location && (
+                    <Text style={styles.pickupAddress}>{tour.pickup_location}</Text>
+                  )}
+                </View>
+              </View>
+            </View>
+          )}
+
           <View style={styles.priceCard}>
             <Text style={styles.priceLabel}>{t("tour.pricePerPerson")}</Text>
             <View style={styles.priceRow}>
-              <Text style={styles.priceValue}>{tour.price_per_person.toLocaleString()}</Text>
+              <Text style={styles.priceValue}>{pricePerPerson.toLocaleString()}</Text>
               <Text style={styles.priceCurrency}>₸</Text>
             </View>
-            <Text style={styles.priceTotal}>Total: {priceTotal.toLocaleString()} ₸ for {tour.max_people} people</Text>
+            <Text style={styles.priceTotal}>
+              {isPartnerTour ? "Цена за 1 человека за тур" : `Total: ${tour.price_per_person.toLocaleString()} ₸ for ${tour.max_people} people`}
+            </Text>
+            {tour.child_discount != null && tour.child_discount > 0 && (
+              <View style={styles.childDiscountRow}>
+                <Tag size={12} color="#A78BFA" />
+                <Text style={styles.childDiscountText}>
+                  Скидка детям: -{tour.child_discount.toLocaleString()} ₸
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.partySection}>
@@ -187,7 +302,8 @@ export default function TourDetailsScreen() {
             <PartyProgress
               current={tour.participant_count || 0}
               max={tour.max_people}
-              priceTotal={priceTotal}
+              priceTotal={tour.price_per_person}
+              isPartnerTour={isPartnerTour}
               participants={tour.participants}
             />
           </View>
@@ -314,7 +430,65 @@ export default function TourDetailsScreen() {
         </View>
       </ScrollView>
 
-      {!isOwner && (
+      {!isOwner && isPartnerTour && tour.partner_whatsapp && (
+        <View style={styles.bottomBar}>
+          {alreadyJoined ? (
+            <View style={styles.statusRow}>
+              {myStatus === "paid" ? (
+                <>
+                  <View style={styles.statusIconWrap}>
+                    <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                  </View>
+                  <View>
+                    <Text style={styles.joinedText}>{t("tour.confirmed")}</Text>
+                    <Text style={styles.joinedSub}>Оплата подтверждена оператором</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.statusIconWrap, { backgroundColor: "rgba(255,191,0,0.1)" }]}>
+                    <Ionicons name="time" size={24} color="#2DD4BF" />
+                  </View>
+                  <View>
+                    <Text style={styles.pendingText}>Ожидает подтверждения</Text>
+                    <Text style={styles.joinedSub}>Оператор подтвердит после оплаты</Text>
+                  </View>
+                </>
+              )}
+            </View>
+          ) : (
+            <View style={styles.bottomActions}>
+              <NeonButton
+                title={selectedDate ? `Забронировать на ${selectedDate}` : "Выберите дату"}
+                onPress={() => {
+                  if (!selectedDate) {
+                    Platform.OS === "web" ? alert("Сначала выберите дату тура") : Alert.alert("Выберите дату", "Пожалуйста, выберите дату тура выше");
+                    return;
+                  }
+                  if (!user?.id) return;
+                  const msg = encodeURIComponent(
+                    `Здравствуйте! Хочу забронировать тур "${tour.title}" на ${selectedDate}.\nИмя: ${user?.name || "—"}\nЦена: ${tour.price_per_person.toLocaleString()} ₸`
+                  );
+                  const waUrl = `https://wa.me/${tour.partner_whatsapp}?text=${msg}`;
+                  Linking.openURL(waUrl);
+                  joinMutation.mutate(
+                    { tourId: tour.id, userId: user.id },
+                    { onSuccess: () => refetch() },
+                  );
+                }}
+                disabled={!selectedDate}
+                icon={<Ionicons name="logo-whatsapp" size={20} color="#0F172A" />}
+                style={{ flex: 1 }}
+              />
+              <TouchableOpacity onPress={handleShare} style={styles.shareBottomButton}>
+                <Share2 size={22} color="#2DD4BF" />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
+
+      {!isOwner && !isPartnerTour && (
         <View style={styles.bottomBar}>
           {alreadyJoined ? (
             <View style={styles.statusRow}>
@@ -392,7 +566,7 @@ export default function TourDetailsScreen() {
             </Text>
             <View style={styles.modalPriceRow}>
               <Text style={styles.modalPriceLabel}>Стоимость:</Text>
-              <Text style={styles.modalPrice}>{tour.price_per_person.toLocaleString()} ₸/чел</Text>
+              <Text style={styles.modalPrice}>{pricePerPerson.toLocaleString()} ₸/чел</Text>
             </View>
             <NeonButton title={t("tour.confirm")} onPress={handleConfirmJoin} loading={joinMutation.isPending} />
             <TouchableOpacity onPress={() => setShowConfirm(false)} style={styles.modalCancel}>
@@ -611,4 +785,74 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
     textAlignVertical: "top", marginBottom: 12,
   },
+
+  partnerBadge: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: 16, backgroundColor: "#FFF7ED", borderRadius: 16, padding: 14,
+    borderWidth: 1, borderColor: "rgba(234,179,8,0.25)",
+  },
+  partnerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  partnerIcon: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: "#2DD4BF",
+    alignItems: "center", justifyContent: "center",
+  },
+  partnerName: { color: "#0F172A", fontWeight: "700", fontSize: 15 },
+  partnerLabel: { color: "#64748B", fontSize: 11 },
+  instagramBtn: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(225,48,108,0.08)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12,
+  },
+  instagramText: { color: "#E1306C", fontSize: 12, fontWeight: "600" },
+
+  itinerarySection: { marginTop: 20 },
+  dayHeader: {
+    marginTop: 12, marginBottom: 6, paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: "rgba(45,212,191,0.08)", borderRadius: 8, alignSelf: "flex-start",
+  },
+  dayHeaderText: { color: "#2DD4BF", fontSize: 12, fontWeight: "700", letterSpacing: 0.5 },
+  itineraryItem: {
+    flexDirection: "row", alignItems: "flex-start", gap: 10, paddingVertical: 8,
+    paddingLeft: 4, borderLeftWidth: 2, borderLeftColor: "rgba(45,212,191,0.2)", marginLeft: 6,
+  },
+  itineraryDot: {
+    width: 8, height: 8, borderRadius: 4, backgroundColor: "#2DD4BF",
+    marginTop: 5, marginLeft: -5,
+  },
+  itineraryTime: { color: "#2DD4BF", fontSize: 12, fontWeight: "700", width: 70 },
+  itineraryTitle: { color: "#0F172A", fontSize: 14, fontWeight: "600" },
+  itineraryDesc: { color: "#64748B", fontSize: 12, marginTop: 2 },
+
+  includedSection: { marginTop: 20 },
+  includedChips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  includedChip: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(16,185,129,0.06)", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
+    borderWidth: 1, borderColor: "rgba(16,185,129,0.15)",
+  },
+  includedChipText: { color: "#0F172A", fontSize: 13 },
+
+  datesSection: { marginTop: 20 },
+  datesChips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  dateChip: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(167,139,250,0.06)", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
+    borderWidth: 1, borderColor: "rgba(167,139,250,0.15)",
+  },
+  dateChipText: { color: "#6D28D9", fontSize: 13, fontWeight: "500" },
+  dateChipSelected: {
+    backgroundColor: "#7C3AED", borderColor: "#7C3AED",
+  },
+  dateChipTextSelected: { color: "#FFF" },
+
+  pickupSection: { marginTop: 20 },
+  pickupCard: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "rgba(45,212,191,0.04)", borderRadius: 14, padding: 14,
+    borderWidth: 1, borderColor: "rgba(45,212,191,0.12)",
+  },
+  pickupTime: { color: "#0F172A", fontSize: 18, fontWeight: "800" },
+  pickupAddress: { color: "#475569", fontSize: 13, marginTop: 2 },
+
+  childDiscountRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 },
+  childDiscountText: { color: "#7C3AED", fontSize: 13, fontWeight: "600" },
 });

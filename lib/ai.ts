@@ -1,6 +1,8 @@
 import { fetchAllPlaces, filterByCity, type DBPlace } from "./places";
 import { haversineKm, formatDistance, estimateWalkingTime, type UserLocation } from "./location";
 import { getRoute, formatDuration, formatKm } from "./routing";
+import { computeSemanticScores, applySemanticScores } from "./semanticValidator";
+import { judgeResponse, applyJudgeResults } from "./llmJudge";
 import type { TimelineStop, AIResponse, SectionOption, StructuredSection, Itinerary } from "../types";
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -124,6 +126,18 @@ const PROMPT_TAG_MAP: Record<string, string[]> = {
   "семь": ["family", "park", "kids", "zoo", "museum"],
   "ребенк": ["family", "kids", "park", "playground", "indoor"],
   "дет": ["family", "kids", "park", "playground"],
+  "встреч": ["restaurant", "quiet", "lounge", "premium", "cafe"],
+  "свобод": ["park", "cafe", "restaurant", "walking", "outdoor", "museum"],
+  "отдохн": ["relax", "cozy", "cafe", "spa", "park", "quiet"],
+  "отдых": ["relax", "cozy", "cafe", "spa", "park", "quiet"],
+  "релакс": ["relax", "spa", "cozy", "quiet", "wellness"],
+  "суета": ["quiet", "cozy", "calm", "relax"],
+  "устал": ["relax", "cozy", "cafe", "quiet", "spa"],
+  "40": ["premium", "restaurant", "lounge", "quiet"],
+  "драйв": ["nightlife", "bar", "entertainment", "club"],
+  "потанцев": ["nightlife", "club", "bar", "entertainment"],
+  "коктейл": ["bar", "lounge", "rooftop", "premium"],
+  "утр": ["breakfast", "cafe", "coffee", "park", "walking"],
 };
 
 // ─── Module-level cache for Replace feature ───
@@ -166,7 +180,7 @@ export async function generateAIResponse(options: GenerateOptions): Promise<AIRe
 
   // 2. Score
   const scored = scorePlaces(cityPlaces, interests, prompt, userLocation);
-  const topPlaces = scored.slice(0, 20);
+  const topPlaces = scored.slice(0, 30);
 
   // 3. Gemini structured or fallback
   let title: string;
@@ -204,6 +218,33 @@ export async function generateAIResponse(options: GenerateOptions): Promise<AIRe
     .map(s => s.place.id);
 
   console.log(`[AI] Title: "${title}", Sections: ${sections.length}, Pool: ${scoredPool.length}`);
+
+  // ─── Anti-hallucination pipeline: semantic scoring + LLM judge in parallel ───
+  const placeMap = new Map(cityPlaces.map(p => [p.id, p]));
+
+  try {
+    const [semanticResult, judgeResult] = await Promise.all([
+      computeSemanticScores(sections, placeMap).catch(err => {
+        console.warn("[AI] Semantic scoring failed (graceful skip):", err?.message);
+        return null;
+      }),
+      judgeResponse(sections, placeMap, city).catch(err => {
+        console.warn("[AI] LLM Judge failed (graceful skip):", err?.message);
+        return null;
+      }),
+    ]);
+
+    if (semanticResult) {
+      applySemanticScores(sections, semanticResult, placeMap);
+    }
+    if (judgeResult) {
+      applyJudgeResults(sections, judgeResult);
+    }
+
+    console.log("[AI] Anti-hallucination pipeline complete");
+  } catch (err: any) {
+    console.warn("[AI] Anti-hallucination pipeline error (graceful skip):", err?.message);
+  }
 
   const response: AIResponse = { title, sections, scoredPool };
   // Fire-and-forget: don't block AI response on OSRM network call
@@ -283,6 +324,8 @@ export function replaceOption(
         place: stop,
         why: place.description || "Рекомендованное место",
         budgetHint: BUDGET_LABELS[place.price_level || 0],
+        confidence: 1.0,
+        confidenceLevel: "verified" as const,
       };
       section.options.splice(optionIdx, 0, newOption);
     }
@@ -333,35 +376,45 @@ async function askGeminiStructured(
     ? `\nUser preferences: ${interests.join(", ")}.`
     : "";
 
-  const systemPrompt = `You are Nomad AI — a premium local city assistant for ${city}, Kazakhstan.
-You create personalized plans that feel premium, not generic. Avoid tourist traps unless requested.${interestStr}
+  const systemPrompt = `You are Travelme AI — a premium travel concierge for ${city}, Kazakhstan. Calm, confident, concierge-style.${interestStr}
 
-Available places (pre-scored by relevance):
+AVAILABLE PLACES (use ONLY these IDs):
 ${JSON.stringify(placeList)}
 
-User request: "${prompt}"
+REQUEST: "${prompt}"
 
-Analyze the user's intent (mood, budget, time, purpose) and create a structured recommendation.
-Return ONLY valid JSON (no markdown):
-{"title":"Short catchy title","sections":[{"title":"Section name","emoji":"one emoji","timeRange":"HH:MM–HH:MM","options":[{"id":"place-uuid","why":"1-2 sentence contextual description","budget":"Xk KZT"}],"reserveIds":["backup-id"]}]}
+Analyze: traveler profile (age, purpose), schedule constraints (meetings, flights), energy/pace, query type.
 
-Rules:
-- 1-4 sections depending on query complexity
-- Single-item query (e.g. "хочу кофе", "где поесть") → 1 section with 2-3 options
-- Multi-activity query (e.g. "вечер провести", "поужинать и сходить") → 2-3 sections
-- Full day query → 3-4 sections
-- Each section: 2-3 primary options + 1-2 reserveIds (backup IDs for swap)
-- "why" MUST be specific to the user's context (mood, purpose, budget), NOT a generic description
-- Budget hints from price level: 0=бесплатно, 1=2-5k, 2=5-10k, 3=10-15k, 4=15-25k, 5=25k+ KZT
-- Time ranges should be realistic and sequential
-- Use ONLY IDs from the available list
-- NEVER repeat IDs across sections or reserves
-- If query mentions "без толп"/"тихо" → pick calm places
-- If query mentions "командировка"/"бизнес" → pick professional atmosphere
-- If query mentions "бюджет"/"студент" → pick affordable options
-- Respond in Russian for Russian queries, English for English queries`;
+TWO MODES:
 
-  const models = ["gemini-2.0-flash-lite", "gemini-2.0-flash"];
+MODE A — PLACE SEARCH ("где поесть", "хочу кофе"):
+→ 1 section, 2-3 options to choose from.
+
+MODE B — FULL DAY PLAN (schedule, trip, meeting, business trip):
+→ Build a sequential timeline of 4-8 sections. EVERY section MUST have a "timeRange".
+→ Each activity section = 1 recommended place + 1-2 reserveIds.
+→ If user mentions a meeting/event/flight — include it as a MARKER section with "options":[] and "reserveIds":[] (empty arrays). This is critical — the meeting must appear in the timeline!
+→ Plan activities BEFORE and AFTER the meeting. Ensure smooth flow: morning→lunch→meeting→evening→night.
+→ Account for travel time between places. Cluster nearby venues.
+→ For business travelers (30+): premium, adult, quiet. No tourist clichés.
+→ For young travelers (18-25): trendy, affordable, energetic.
+
+EXAMPLE of a meeting marker section:
+{"title":"Деловая встреча","emoji":"🤝","timeRange":"15:00–16:00","options":[],"reserveIds":[]}
+
+JSON FORMAT (ONLY valid JSON, no markdown):
+{"title":"Catchy title","sections":[{"title":"Activity","emoji":"emoji","timeRange":"HH:MM–HH:MM","options":[{"id":"uuid","why":"2-3 sentences WHY this fits the user","budget":"Xk KZT"}],"reserveIds":["backup-uuid"]}]}
+
+RULES:
+- EVERY section MUST have "timeRange" in format "HH:MM–HH:MM". No section without time.
+- Every "id" MUST match an id from the list. Non-matching ids are rejected.
+- "why" must reference user's specific context (age, purpose, mood, schedule).
+- Budget from price_level: 0=бесплатно, 1=2-5k, 2=5-10k, 3=10-15k, 4=15-25k, 5=25k+ KZT.
+- NEVER invent places, addresses, or details not in data.
+- NEVER repeat IDs across sections.
+- Respond in Russian for Russian queries, English for English.`;
+
+  const models = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
   let lastError: Error | null = null;
 
   for (const model of models) {
@@ -369,7 +422,7 @@ Rules:
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), 15000);
 
       console.log(`[Gemini] Calling ${model}...`);
       const response = await fetch(url, {
@@ -378,7 +431,7 @@ Rules:
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts: [{ text: systemPrompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
+          generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
         }),
       });
       clearTimeout(timeout);
@@ -409,8 +462,17 @@ Rules:
         continue;
       }
 
-      console.log(`[Gemini] ${model} success: ${result.sections.length} sections`);
-      return result;
+      // Anti-hallucination: validate all IDs against the provided places
+      const validPlaceIds = new Set(places.map(p => p.id));
+      const { validatedSections, stats } = validateGeminiResponse(result, validPlaceIds);
+
+      if (validatedSections.length === 0) {
+        lastError = new Error(`Gemini ${model}: all place IDs were hallucinated (${stats.rejected}/${stats.total})`);
+        continue;
+      }
+
+      console.log(`[Gemini] ${model} success: ${validatedSections.length} sections (${stats.rejected} hallucinated IDs removed)`);
+      return { title: result.title, sections: validatedSections };
     } catch (err: any) {
       if (err.name === "AbortError") {
         console.warn(`[Gemini] ${model} timed out after 15s`);
@@ -425,6 +487,73 @@ Rules:
   throw lastError || new Error("All Gemini models failed");
 }
 
+// ─── Validate Gemini response against DB (Anti-hallucination Component 1) ───
+
+interface ValidationResult {
+  validatedSections: GeminiSection[];
+  stats: { total: number; valid: number; rejected: number; duplicates: number };
+}
+
+function validateGeminiResponse(
+  geminiResult: GeminiResult,
+  validIds: Set<string>,
+): ValidationResult {
+  const seenIds = new Set<string>();
+  let total = 0;
+  let rejected = 0;
+  let duplicates = 0;
+
+  const validatedSections = geminiResult.sections
+    .map(section => {
+      const validOptions = section.options.filter(opt => {
+        total++;
+        if (!validIds.has(opt.id)) {
+          console.warn(`[Validation] Rejected hallucinated ID: ${opt.id}`);
+          rejected++;
+          return false;
+        }
+        if (seenIds.has(opt.id)) {
+          console.warn(`[Validation] Rejected duplicate ID: ${opt.id}`);
+          duplicates++;
+          return false;
+        }
+        seenIds.add(opt.id);
+        return true;
+      });
+
+      const validReserves = (section.reserveIds || []).filter(id => {
+        total++;
+        if (!validIds.has(id)) {
+          console.warn(`[Validation] Rejected hallucinated reserve ID: ${id}`);
+          rejected++;
+          return false;
+        }
+        if (seenIds.has(id)) {
+          duplicates++;
+          return false;
+        }
+        seenIds.add(id);
+        return true;
+      });
+
+      return { ...section, options: validOptions, reserveIds: validReserves };
+    })
+    .filter(section => {
+      // Keep sections with valid options OR marker sections (meetings, flights, events) with no options
+      if (section.options.length > 0) return true;
+      const isMarker = section.reserveIds.length === 0;
+      if (isMarker) {
+        console.log(`[Validation] Keeping marker section: "${section.title}" (${section.timeRange})`);
+      }
+      return isMarker;
+    });
+
+  const valid = total - rejected - duplicates;
+  console.log(`[Validation] IDs: ${total} total, ${valid} valid, ${rejected} hallucinated, ${duplicates} duplicates`);
+
+  return { validatedSections, stats: { total, valid, rejected, duplicates } };
+}
+
 // ─── Build structured sections from Gemini result ───
 
 function buildStructuredSections(
@@ -435,6 +564,17 @@ function buildStructuredSections(
   const placeMap = new Map(places.map(p => [p.id, p]));
 
   return geminiSections.map(gs => {
+    // Marker sections (meetings, flights) have no options
+    if (!gs.options || gs.options.length === 0) {
+      return {
+        title: gs.title,
+        emoji: gs.emoji || "🤝",
+        timeRange: gs.timeRange || "",
+        options: [],
+        reserves: [],
+      };
+    }
+
     const options: SectionOption[] = gs.options
       .map(opt => {
         const place = placeMap.get(opt.id);
@@ -443,6 +583,8 @@ function buildStructuredSections(
           place: buildTimelineStop(place, userLocation),
           why: opt.why,
           budgetHint: opt.budget || BUDGET_LABELS[place.price_level || 0],
+          confidence: 1.0,
+          confidenceLevel: "verified" as const,
         };
       })
       .filter(Boolean) as SectionOption[];
@@ -455,6 +597,8 @@ function buildStructuredSections(
           place: buildTimelineStop(place, userLocation),
           why: place.description || "Альтернативный вариант",
           budgetHint: BUDGET_LABELS[place.price_level || 0],
+          confidence: 1.0,
+          confidenceLevel: "verified" as const,
         };
       })
       .filter(Boolean) as SectionOption[];
@@ -476,23 +620,81 @@ function buildFallbackSections(
   city: string,
   userLocation: UserLocation | null,
 ): StructuredSection[] {
-  const options = places.slice(0, 3).map(p => ({
-    place: buildTimelineStop(p, userLocation),
-    why: p.description || `Популярное место в ${city}`,
-    budgetHint: BUDGET_LABELS[p.price_level || 0],
-  }));
-  const reserves = places.slice(3, 5).map(p => ({
-    place: buildTimelineStop(p, userLocation),
-    why: p.description || "Альтернативный вариант",
-    budgetHint: BUDGET_LABELS[p.price_level || 0],
-  }));
+  if (places.length <= 3) {
+    const options = places.map(p => ({
+      place: buildTimelineStop(p, userLocation),
+      why: p.description || `Популярное место в ${city}`,
+      budgetHint: BUDGET_LABELS[p.price_level || 0],
+      confidence: 1.0,
+      confidenceLevel: "verified" as const,
+    }));
+    return [{
+      title: "Рекомендации",
+      emoji: "✨",
+      timeRange: "",
+      options,
+      reserves: [],
+    }];
+  }
 
-  return [{
+  const categoryMap: Record<string, { emoji: string; title: string }> = {
+    cafe: { emoji: "☕", title: "Кофе и завтрак" },
+    coffee: { emoji: "☕", title: "Кофе и завтрак" },
+    restaurant: { emoji: "🍽", title: "Обед / Ужин" },
+    food: { emoji: "🍽", title: "Где поесть" },
+    park: { emoji: "🌿", title: "Прогулка" },
+    nature: { emoji: "🌿", title: "На природу" },
+    museum: { emoji: "🏛", title: "Культура" },
+    culture: { emoji: "🏛", title: "Культура" },
+    bar: { emoji: "🍸", title: "Вечер" },
+    nightlife: { emoji: "🌙", title: "Ночная жизнь" },
+    entertainment: { emoji: "🎭", title: "Развлечения" },
+    shopping: { emoji: "🛍", title: "Шоппинг" },
+  };
+
+  const sections: StructuredSection[] = [];
+  const usedIds = new Set<string>();
+
+  for (const place of places) {
+    if (usedIds.has(place.id) || sections.length >= 6) break;
+    const type = (place.type || "").toLowerCase();
+    const meta = categoryMap[type] || { emoji: "📍", title: place.type || "Рекомендация" };
+
+    const existing = sections.find(s => s.title === meta.title && s.options.length < 2);
+    const opt = {
+      place: buildTimelineStop(place, userLocation),
+      why: place.description || `Популярное место в ${city}`,
+      budgetHint: BUDGET_LABELS[place.price_level || 0],
+      confidence: 1.0,
+      confidenceLevel: "verified" as const,
+    };
+
+    if (existing) {
+      existing.reserves.push(opt);
+    } else {
+      sections.push({
+        title: meta.title,
+        emoji: meta.emoji,
+        timeRange: "",
+        options: [opt],
+        reserves: [],
+      });
+    }
+    usedIds.add(place.id);
+  }
+
+  return sections.length > 0 ? sections : [{
     title: "Рекомендации",
     emoji: "✨",
     timeRange: "",
-    options,
-    reserves,
+    options: places.slice(0, 3).map(p => ({
+      place: buildTimelineStop(p, userLocation),
+      why: p.description || `Популярное место в ${city}`,
+      budgetHint: BUDGET_LABELS[p.price_level || 0],
+      confidence: 1.0,
+      confidenceLevel: "verified" as const,
+    })),
+    reserves: [],
   }];
 }
 
@@ -601,6 +803,10 @@ function scorePlaces(
 
 function guessTitle(prompt: string, city: string): string {
   const lower = prompt.toLowerCase();
+  if (lower.includes("встреч") && (lower.includes("командировк") || lower.includes("работ") || lower.includes("бизнес")))
+    return `Бизнес-план — ${city}`;
+  if (lower.includes("командировк") || (lower.includes("работ") && lower.includes("свобод")))
+    return `Командировка — ${city}`;
   if (lower.includes("date") || lower.includes("romantic") || lower.includes("свидан") || lower.includes("романтик") || lower.includes("годовщин"))
     return `Романтический вечер — ${city}`;
   if (lower.includes("coffee") || lower.includes("cafe") || lower.includes("кофе") || lower.includes("кафе"))
@@ -619,7 +825,7 @@ function guessTitle(prompt: string, city: string): string {
     return `Вечер в ${city}`;
   if (lower.includes("shop") || lower.includes("магазин"))
     return `Шоппинг — ${city}`;
-  if (lower.includes("командировк") || lower.includes("бизнес") || lower.includes("работ"))
+  if (lower.includes("бизнес") || lower.includes("работ"))
     return `Бизнес-вечер — ${city}`;
   if (lower.includes("студент") || lower.includes("бюджет"))
     return `Бюджетный план — ${city}`;
@@ -627,6 +833,8 @@ function guessTitle(prompt: string, city: string): string {
     return `Что делать в дождь — ${city}`;
   if (lower.includes("семь") || lower.includes("ребенк") || lower.includes("дет"))
     return `С семьёй — ${city}`;
+  if (lower.includes("отдохн") || lower.includes("отдых") || lower.includes("релакс"))
+    return `Отдых — ${city}`;
   return `Рекомендации — ${city}`;
 }
 

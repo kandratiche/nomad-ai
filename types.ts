@@ -84,10 +84,14 @@ export interface TimelineStop {
   longitude?: number | null;
 }
 
+export type ConfidenceLevel = "verified" | "ai_generated" | "low_confidence";
+
 export interface SectionOption {
   place: TimelineStop;
   why: string;                         // AI-generated contextual description
   budgetHint?: string;                 // e.g., "10–15k KZT"
+  confidence: number;                  // 0.0 – 1.0 semantic similarity score
+  confidenceLevel: ConfidenceLevel;    // classification based on anti-hallucination pipeline
 }
 
 export interface StructuredSection {

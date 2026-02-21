@@ -26,7 +26,7 @@ import { generateAIResponse, replaceOption, getCachedPlaces } from "@/lib/ai";
 import { getUserLocation, formatDistance, type UserLocation } from "@/lib/location";
 import PlaceDetailModal from "@/components/PlaceDetailModal";
 import RouteMapModal from "@/components/RouteMapModal";
-import type { TimelineStop, AIResponse, StructuredSection, SectionOption } from "@/types";
+import type { TimelineStop, AIResponse, StructuredSection, SectionOption, ConfidenceLevel } from "@/types";
 import { useSaveTrip } from "@/hooks/useTrips";
 
 const QUICK_ACTIONS = [
@@ -162,6 +162,12 @@ export default function HomeScreen() {
             </View>
           </View>
 
+          {section.options.length === 0 && (
+            <View style={styles.markerDivider}>
+              <View style={styles.markerLine} />
+            </View>
+          )}
+
           {section.options.map((opt, oIdx) => (
             <View key={opt.place.id} style={styles.optionCard}>
               <TouchableOpacity
@@ -194,7 +200,38 @@ export default function HomeScreen() {
                     )}
                   </View>
 
-                  <Text style={styles.optionWhy} numberOfLines={2}>{opt.why}</Text>
+                  <View style={styles.whyRow}>
+                    <Text style={styles.optionWhy} numberOfLines={2}>{opt.why}</Text>
+                    {opt.confidenceLevel && (
+                      <View style={[
+                        styles.confidenceBadge,
+                        opt.confidenceLevel === "verified" && styles.confidenceVerified,
+                        opt.confidenceLevel === "ai_generated" && styles.confidenceAI,
+                        opt.confidenceLevel === "low_confidence" && styles.confidenceLow,
+                      ]}>
+                        <Ionicons
+                          name={
+                            opt.confidenceLevel === "verified" ? "checkmark-circle" :
+                            opt.confidenceLevel === "ai_generated" ? "sparkles" : "alert-circle"
+                          }
+                          size={10}
+                          color={
+                            opt.confidenceLevel === "verified" ? "#059669" :
+                            opt.confidenceLevel === "ai_generated" ? "#D97706" : "#EA580C"
+                          }
+                        />
+                        <Text style={[
+                          styles.confidenceText,
+                          opt.confidenceLevel === "verified" && { color: "#059669" },
+                          opt.confidenceLevel === "ai_generated" && { color: "#D97706" },
+                          opt.confidenceLevel === "low_confidence" && { color: "#EA580C" },
+                        ]}>
+                          {opt.confidenceLevel === "verified" ? t("home.confidenceVerified") :
+                           opt.confidenceLevel === "ai_generated" ? "AI" : t("home.confidenceCheck")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
 
                   <View style={styles.optionMeta}>
                     {opt.budgetHint ? (
@@ -545,7 +582,16 @@ const styles = StyleSheet.create({
   optionBody: { flex: 1 },
   optionTitleRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 3 },
   optionTitle: { fontSize: 15, fontWeight: "700", color: "#0F172A", flex: 1 },
-  optionWhy: { fontSize: 13, color: "#475569", lineHeight: 18, marginBottom: 6 },
+  whyRow: { marginBottom: 6 },
+  optionWhy: { fontSize: 13, color: "#475569", lineHeight: 18, marginBottom: 4 },
+  confidenceBadge: {
+    flexDirection: "row", alignItems: "center", alignSelf: "flex-start",
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, gap: 3,
+  },
+  confidenceVerified: { backgroundColor: "#ECFDF5" },
+  confidenceAI: { backgroundColor: "#FFFBEB" },
+  confidenceLow: { backgroundColor: "#FFF7ED" },
+  confidenceText: { fontSize: 10, fontWeight: "700" },
   optionMeta: { flexDirection: "row", flexWrap: "wrap", gap: 5 },
   optionChip: {
     flexDirection: "row", alignItems: "center", backgroundColor: "#F8FAFC",
@@ -553,6 +599,14 @@ const styles = StyleSheet.create({
   },
   optionChipText: { fontSize: 11, fontWeight: "600", color: "#475569" },
   optionBudgetText: { fontSize: 11, fontWeight: "700", color: "#10B981" },
+
+  // Marker (meeting/event divider)
+  markerDivider: {
+    alignItems: "center", paddingVertical: 4,
+  },
+  markerLine: {
+    width: 2, height: 24, backgroundColor: "#E2E8F0", borderRadius: 1,
+  },
 
   // Replace button
   replaceButton: {

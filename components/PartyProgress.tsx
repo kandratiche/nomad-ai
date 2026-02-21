@@ -12,14 +12,15 @@ interface Props {
   current: number;
   max: number;
   priceTotal: number;
+  isPartnerTour?: boolean;
   participants?: { user_avatar?: string; user_name?: string }[];
 }
 
-export function PartyProgress({ current, max, priceTotal, participants = [] }: Props) {
+export function PartyProgress({ current, max, priceTotal, isPartnerTour = false, participants = [] }: Props) {
   const progress = useSharedValue(0);
   const fraction = Math.min(current / max, 1);
-  const pricePerPerson = max > 0 ? Math.round(priceTotal / max) : priceTotal;
-  const currentPricePerPerson = current > 0 ? Math.round(priceTotal / Math.max(current, 1)) : priceTotal;
+  const pricePerPerson = isPartnerTour ? (priceTotal || 0) : (max > 0 ? Math.round((priceTotal || 0) / max) : (priceTotal || 0));
+  const currentPricePerPerson = isPartnerTour ? (priceTotal || 0) : (current > 0 ? Math.round((priceTotal || 0) / Math.max(current, 1)) : (priceTotal || 0));
 
   useEffect(() => {
     progress.value = withTiming(fraction, { duration: 800, easing: Easing.out(Easing.cubic) });

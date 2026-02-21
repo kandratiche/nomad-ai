@@ -103,7 +103,9 @@
     "quickActionNature": "Природа",
     "quickActionEvening": "Вечер",
     "quickActionBusiness": "Бизнес",
-    "quickActionBudget": "Бюджет"
+    "quickActionBudget": "Бюджет",
+    "confidenceVerified": "Проверено",
+    "confidenceCheck": "Уточните"
   },
   "explore": {
     "titleFirst": "ИССЛЕДУЙ",

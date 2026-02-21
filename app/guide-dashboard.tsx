@@ -120,7 +120,7 @@ function TourDashboardCard({ tour, expanded, onToggle }: { tour: any; expanded: 
               </Text>
             </View>
           </View>
-          <Text style={styles.tourMeta}>{tour.city} · {tour.duration_hours}h · {tour.price_total?.toLocaleString()} ₸</Text>
+          <Text style={styles.tourMeta}>{tour.city} · {tour.duration_hours}h · {tour.price_per_person?.toLocaleString()} ₸</Text>
         </View>
         {pendingCount > 0 && (
           <View style={styles.pendingBadge}>

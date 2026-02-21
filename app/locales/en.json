@@ -103,7 +103,9 @@
     "quickActionNature": "Nature",
     "quickActionEvening": "Evening",
     "quickActionBusiness": "Business",
-    "quickActionBudget": "Budget"
+    "quickActionBudget": "Budget",
+    "confidenceVerified": "Verified",
+    "confidenceCheck": "Check"
   },
   "explore": {
     "titleFirst": "EXPLORE",

@@ -430,7 +430,8 @@ export default function ExploreScreen() {
               !tourSearch || t.title.toLowerCase().includes(tourSearch.toLowerCase()) ||
               t.city?.toLowerCase().includes(tourSearch.toLowerCase())
             );
-            if (tourSort === "price") filtered = [...filtered].sort((a, b) => (a.price_total / a.max_people) - (b.price_total / b.max_people));
+            const ppPrice = (t: any) => t.partner_name ? t.price_per_person : (t.max_people > 0 ? t.price_per_person / t.max_people : t.price_per_person);
+            if (tourSort === "price") filtered = [...filtered].sort((a, b) => ppPrice(a) - ppPrice(b));
             else if (tourSort === "popular") filtered = [...filtered].sort((a, b) => (b.participant_count || 0) - (a.participant_count || 0));
             return filtered.length === 0 ? (
               <View style={styles.empty}>

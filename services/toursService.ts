@@ -1,5 +1,12 @@
 import supabase from "@/lib/supabaseClient";
 
+export interface TourItineraryItem {
+  day?: number;
+  time?: string;
+  title: string;
+  desc?: string;
+}
+
 export interface DBTour {
   id: string;
   guide_id: string;
@@ -20,6 +27,15 @@ export interface DBTour {
   guide_avatar?: string;
   guide_verified?: boolean;
   participants?: DBParticipant[];
+  partner_name?: string | null;
+  partner_instagram?: string | null;
+  partner_whatsapp?: string | null;
+  itinerary?: TourItineraryItem[] | null;
+  included?: string[] | null;
+  available_dates?: string[] | null;
+  pickup_location?: string | null;
+  pickup_time?: string | null;
+  child_discount?: number | null;
 }
 
 export interface DBParticipant {
@@ -131,7 +147,7 @@ export async function createTour(params: {
       guide_id: params.guideId,
       title: params.title,
       description: params.description,
-      price_total: params.priceTotal,
+      price_per_person: params.priceTotal,
       max_people: params.maxPeople,
       duration_hours: params.durationHours,
       start_date: params.startDate || null,
@@ -229,7 +245,7 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
   const tourIds = [...new Set(parts.map((p: any) => p.tour_id))];
   const { data: tours } = await supabase
     .from("tours")
-    .select("id, title, city, image_url, price_total, max_people, start_date, guide_id")
+    .select("id, title, city, image_url, price_per_person, max_people, start_date, guide_id")
     .in("id", tourIds);
 
   const guideIds = [...new Set((tours || []).map((t: any) => t.guide_id))];
@@ -251,7 +267,7 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
       tour_title: tour.title || "Tour",
       tour_city: tour.city || "",
       tour_image: tour.image_url || "",
-      tour_price: tour.price_total || 0,
+      tour_price: tour.price_per_person || 0,
       tour_max_people: tour.max_people || 4,
       tour_start_date: tour.start_date || null,
       guide_name: guide.name || "Guide",
@@ -322,12 +338,18 @@ Take this draft tour description and make it compelling, premium, and engaging.
 Add relevant emojis, highlight unique selling points, and create a sense of exclusivity.
 Keep it under 200 words. Write in the same language as the draft.
 
+ANTI-HALLUCINATION RULES:
+- Use ONLY facts and details present in the draft. NEVER invent locations, prices, or features not mentioned.
+- Do not add specific addresses, phone numbers, or opening hours unless they appear in the draft.
+- If the draft lacks detail, enhance the tone and style without fabricating new factual claims.
+- When uncertain about any detail, omit it rather than guess.
+
 Tour title: "${title}"
 Draft: "${draft}"
 
 Return ONLY the enhanced description text, no extra formatting.`;
 
-  const models = ["gemini-2.0-flash-lite", "gemini-2.0-flash"];
+  const models = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
   for (const model of models) {
     try {
       const controller = new AbortController();

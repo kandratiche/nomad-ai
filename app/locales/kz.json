@@ -103,7 +103,9 @@
     "quickActionNature": "Табиғат",
     "quickActionEvening": "Кеш",
     "quickActionBusiness": "Бизнес",
-    "quickActionBudget": "Бюджет"
+    "quickActionBudget": "Бюджет",
+    "confidenceVerified": "Тексерілген",
+    "confidenceCheck": "Тексеріңіз"
   },
   "explore": {
     "titleFirst": "ЗЕРТТЕУ",
