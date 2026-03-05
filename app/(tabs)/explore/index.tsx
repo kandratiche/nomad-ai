@@ -41,6 +41,42 @@ const CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
   aktau: { latitude: 43.6352, longitude: 51.1478 },
 };
 
+const renderCluster = (cluster: any) => {
+  const { geometry, onPress, properties } = cluster;
+  const points = properties.point_count;
+
+  return (
+    <Marker
+      key={`cluster-${cluster.id}`}
+      coordinate={{
+        longitude: geometry.coordinates[0],
+        latitude: geometry.coordinates[1],
+      }}
+      onPress={onPress}
+      tracksViewChanges={false}
+    >
+      <View style={{
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#0F172A",
+        borderWidth: 2,
+        borderColor: "#2DD4BF",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <Text style={{
+          color: "#2DD4BF",
+          fontWeight: "bold",
+          fontSize: 14,
+        }}>
+          {points}
+        </Text>
+      </View>
+    </Marker>
+  );
+};
+
 export default function ExploreScreen() {
   const [activeTab, setActiveTab] = useState<"map" | "guides" | "places" | "tours">("map");
   const { user, loading } = useContext(AuthContext);
@@ -58,6 +94,14 @@ export default function ExploreScreen() {
   const [detailVisible, setDetailVisible] = useState(false);
   const bottomSheetRef = useRef<any>(null);
   const snapPoints = useMemo(() => ["45%"], []);
+  const [markersReady, setMarkersReady] = useState(true);
+
+useEffect(() => {
+  if (places.length > 0) {
+    const timer = setTimeout(() => setMarkersReady(false), 1500);
+    return () => clearTimeout(timer);
+  }
+}, [places]);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/");
@@ -153,35 +197,42 @@ export default function ExploreScreen() {
           >
             {isMapAvailable && MapView && Marker ? (
               <MapView
-                style={StyleSheet.absoluteFill}
-                initialRegion={{
-                  ...cityCoord,
-                  latitudeDelta: 0.12,
-                  longitudeDelta: 0.12,
-                }}
-                showsUserLocation
-                showsMyLocationButton
-              >
+  style={StyleSheet.absoluteFill}
+  initialRegion={{
+    ...cityCoord,
+    latitudeDelta: 0.12,
+    longitudeDelta: 0.12,
+  }}
+  showsUserLocation
+  showsMyLocationButton
+  radius={30}
+  maxZoom={20}
+  minPoints={5}
+  animationEnabled={false}
+  renderCluster={renderCluster}
+  googleRenderer="LEGACY"
+>
                 {places
-                  .filter((p) => p.latitude && p.longitude)
-                  .map((place) => (
-                    <Marker
-                      key={place.id}
-                      coordinate={{ latitude: place.latitude!, longitude: place.longitude! }}
-                      onPress={() => onMarkerPress(place)}
-                    >
-                      <View style={styles.marker}>
-                        <View style={styles.markerInner}>
-                          <Ionicons
-                            name={markerIcon(place.type)}
-                            size={14}
-                            color="#2DD4BF"
-                          />
-                        </View>
-                        <View style={styles.markerArrow} />
-                      </View>
-                    </Marker>
-                  ))}
+  .filter((p) => p.latitude && p.longitude)
+  .map((place) => (
+    <Marker
+  key={place.id}
+  coordinate={{ latitude: place.latitude!, longitude: place.longitude! }}
+  onPress={() => onMarkerPress(place)}
+  tracksViewChanges={true}
+>
+  <View style={styles.marker}>
+    <View style={styles.markerInner}>
+      <Ionicons
+        name={markerIcon(place.type)}
+        size={14}
+        color="#2DD4BF"
+      />
+    </View>
+    <View style={styles.markerArrow} />
+  </View>
+</Marker>
+  ))}
               </MapView>
             ) : (
               <View style={styles.mapFallback}>

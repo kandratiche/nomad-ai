@@ -1,15 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  StyleSheet,
+  View, Text, TouchableOpacity, ScrollView, Image, StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { CITIES } from "@/constants/mockData";
 import { LightScreen } from "../../components/ui/LightScreen";
 import { GlassCardOnLight } from "../../components/ui/GlassCard";
@@ -19,9 +14,7 @@ import { AuthContext } from "@/context/authContext";
 import { useLocalSearchParams } from "expo-router";
 import supabase from "@/lib/supabaseClient";
 
-type CitySelectScreenProps = {
-  new: string;
-};
+type CitySelectScreenProps = { new: string };
 
 export default function CitySelectScreen() {
   const { t } = useTranslation();
@@ -31,8 +24,8 @@ export default function CitySelectScreen() {
   const [selectedId, setSelectedId] = React.useState<string | null>(user?.home_city || "Almaty");
 
   const handleContinue = async () => {
-    if (!selectedId) return alert(t('citySelect.selectCity'));
-    if (!user?.id) return alert(t('citySelect.userNotFound'));
+    if (!selectedId) return alert(t("citySelect.selectCity"));
+    if (!user?.id) return alert(t("citySelect.userNotFound"));
 
     try {
       const { data: updatedProfile, error } = await supabase
@@ -44,8 +37,6 @@ export default function CitySelectScreen() {
 
       if (error) throw error;
 
-      console.log("Updated profile:", updatedProfile);
-
       if (isNew) {
         router.replace("/auth/vibe-check");
       } else {
@@ -53,7 +44,7 @@ export default function CitySelectScreen() {
       }
     } catch (err: any) {
       console.error("Error updating city:", err);
-      alert(err.message || t('citySelect.somethingWrong'));
+      alert(err.message || t("citySelect.somethingWrong"));
     }
   };
 
@@ -62,51 +53,30 @@ export default function CitySelectScreen() {
       <View style={styles.container}>
         <View style={styles.topBar}>
           <TouchableOpacity
-            onPress={() => {
-              if (isNew) {
-                router.replace("/auth/register");
-              } else {
-                router.replace("/home");
-              }
-            }}
+            onPress={() => router.replace(isNew ? "/auth/register" : "/home")}
             style={styles.backButton}
           >
             <Ionicons name="arrow-back" size={22} color="#0F172A" />
           </TouchableOpacity>
-
           <View style={styles.stepDots}>
             {[1, 2, 3].map((i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  { backgroundColor: i === 1 ? "#2DD4BF" : "#E2E8F0" },
-                ]}
-              />
+              <View key={i} style={[styles.dot, { backgroundColor: i === 1 ? "#2DD4BF" : "#E2E8F0" }]} />
             ))}
           </View>
         </View>
 
-        <SplitTitle 
-          first={t('citySelect.titleFirst')} 
-          second={t('citySelect.titleSecond')} 
-          style={styles.title} 
+        <SplitTitle
+          first={t("citySelect.titleFirst")}
+          second={t("citySelect.titleSecond")}
+          style={styles.title}
         />
 
         <TouchableOpacity style={styles.locateButton} onPress={handleContinue}>
-          <Ionicons
-            name="compass-outline"
-            size={20}
-            color="#2DD4BF"
-            style={styles.locateIcon}
-          />
-          <Text style={styles.locateText}>{t('citySelect.locateMe')}</Text>
+          <Ionicons name="compass-outline" size={20} color="#2DD4BF" style={styles.locateIcon} />
+          <Text style={styles.locateText}>{t("citySelect.locateMe")}</Text>
         </TouchableOpacity>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContainer}
-        >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
           {CITIES.map((city) => {
             const isSelected = selectedId === city.id;
             return (
@@ -116,49 +86,36 @@ export default function CitySelectScreen() {
                 activeOpacity={0.9}
                 style={styles.cityWrapper}
               >
-                <GlassCardOnLight
-                  style={{
-                    ...styles.cityCard,
-                    ...(isSelected && { borderWidth: 2, borderColor: "#2DD4BF" }),
-                  }}
-                >
-                  <View style={styles.cityCardContent}>
-                    <Image
-                      source={{ uri: city.imageUrl }}
-                      style={styles.cityImage}
-                      resizeMode="cover"
-                    />
-
-                    <View style={styles.cityOverlay}>
-                      <View style={styles.cityInfoRow}>
-                        <View>
-                          <Text style={styles.cityName}>{city.name}</Text>
-                          <View style={styles.citySubtitleRow}>
-                            <View
-                              style={[
-                                styles.cityIndicator,
-                                {
-                                  backgroundColor: isSelected
-                                    ? "#FACC15"
-                                    : "#2DD4BF",
-                                },
-                              ]}
-                            />
-                            <CaptionText style={styles.citySubtitle}>
-                              {t(`citySelect.subtitles.${city.id}`) || city.country}
-                            </CaptionText>
+                {/*
+                  FIX: border lives on outer wrapper, NOT on the card with overflow:hidden.
+                  On Android, dynamically adding borderWidth to overflow:"hidden" View
+                  causes child images to vanish.
+                */}
+                <View style={[styles.cityBorder, isSelected && styles.cityBorderSelected]}>
+                  <GlassCardOnLight style={styles.cityCard}>
+                    <View style={styles.cityCardContent}>
+                      <Image source={{ uri: city.imageUrl }} style={styles.cityImage} resizeMode="cover" />
+                      <View style={styles.cityOverlay}>
+                        <View style={styles.cityInfoRow}>
+                          <View>
+                            <Text style={styles.cityName}>{city.name}</Text>
+                            <View style={styles.citySubtitleRow}>
+                              <View style={[styles.cityIndicator, { backgroundColor: isSelected ? "#FACC15" : "#2DD4BF" }]} />
+                              <CaptionText style={styles.citySubtitle}>
+                                {t(`citySelect.subtitles.${city.id}`) || city.country}
+                              </CaptionText>
+                            </View>
                           </View>
+                          {isSelected && (
+                            <View style={styles.checkBadge}>
+                              <Ionicons name="checkmark" size={18} color="#FFF" />
+                            </View>
+                          )}
                         </View>
-
-                        {isSelected && (
-                          <View style={styles.checkBadge}>
-                            <Ionicons name="checkmark" size={18} color="#FFF" />
-                          </View>
-                        )}
                       </View>
                     </View>
-                  </View>
-                </GlassCardOnLight>
+                  </GlassCardOnLight>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -173,136 +130,64 @@ export default function CitySelectScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
+  container: { flex: 1, paddingHorizontal: 24, paddingTop: 24 },
   topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    position: "absolute", top: 0, left: 0, right: 0,
   },
   backButton: {
-    top: 24,
-    left: 24,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    top: 24, left: 24, zIndex: 10,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: "rgba(241,245,249,0.95)",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
-  stepDots: {
-    top: 56,
-    right: 24,
-    zIndex: 10,
-    flexDirection: "row",
-    gap: 6,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  title: {
-    marginTop: 50,
-    marginBottom: 20,
-  },
+  stepDots: { top: 56, right: 24, zIndex: 10, flexDirection: "row", gap: 6 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  title: { marginTop: 50, marginBottom: 20 },
   locateButton: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#2DD4BF",
-    backgroundColor: "#FFF",
-    marginBottom: 24,
+    alignSelf: "center", flexDirection: "row", alignItems: "center",
+    paddingVertical: 12, paddingHorizontal: 20, borderRadius: 24,
+    borderWidth: 1, borderColor: "#2DD4BF", backgroundColor: "#FFF", marginBottom: 24,
   },
-  locateIcon: {
-    marginRight: 8,
-  },
-  locateText: {
-    color: "#475569",
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  scrollContainer: {
-    paddingBottom: 100,
-  },
-  cityWrapper: {
-    marginBottom: 16,
-  },
-  cityCard: {
+  locateIcon: { marginRight: 8 },
+  locateText: { color: "#475569", fontWeight: "600", fontSize: 15 },
+  scrollContainer: { paddingBottom: 100 },
+  cityWrapper: { marginBottom: 16 },
+
+  // ─── FIX: border wrapper separate from overflow:hidden ────────────────────
+  cityBorder: {
     borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "transparent",  // invisible by default
+  },
+  cityBorderSelected: {
+    borderColor: "#2DD4BF",       // teal when selected
+  },
+
+  // ─── GlassCard keeps overflow:hidden — no border here anymore ─────────────
+  cityCard: {
+    borderRadius: 18,             // slightly less than wrapper
     overflow: "hidden",
     padding: 0,
   },
-  cityCardContent: {
-    height: 140,
-    position: "relative",
-  },
-  cityImage: {
-    width: "100%",
-    height: "100%",
-  },
+  cityCardContent: { height: 140, position: "relative" },
+  cityImage: { width: "100%", height: "100%" },
   cityOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    padding: 16,
-    backgroundColor: "rgba(0,0,0,0.35)",
+    position: "absolute", left: 0, right: 0, bottom: 0,
+    padding: 16, backgroundColor: "rgba(0,0,0,0.35)",
   },
-  cityInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  cityName: {
-    color: "#FFF",
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  citySubtitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 2,
-  },
-  cityIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  citySubtitle: {
-    color: "rgba(255,255,255,0.95)",
-    fontSize: 13,
-  },
+  cityInfoRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  cityName: { color: "#FFF", fontSize: 22, fontWeight: "700" },
+  citySubtitleRow: { flexDirection: "row", alignItems: "center", marginTop: 2 },
+  cityIndicator: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  citySubtitle: { color: "rgba(255,255,255,0.95)", fontSize: 13 },
   checkBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#2DD4BF",
-    alignItems: "center",
-    justifyContent: "center",
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: "#2DD4BF", alignItems: "center", justifyContent: "center",
   },
   forwardButton: {
-    position: "absolute",
-    bottom: 40,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#0F172A",
-    alignItems: "center",
-    justifyContent: "center",
+    position: "absolute", bottom: 40, right: 24,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center",
   },
 });

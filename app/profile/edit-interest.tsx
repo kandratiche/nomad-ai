@@ -1,228 +1,187 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "@/context/authContext";
 import { INTEREST_IMAGES } from "../auth/vibe-check";
 import { INTERESTS } from "@/constants/mockData";
 import { LightScreen } from "@/components/ui/LightScreen";
 import { ScrollView } from "react-native-gesture-handler";
-import { TouchableOpacity, StyleSheet, View } from "react-native";
+import { TouchableOpacity, StyleSheet, View, Image, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { SplitTitle } from "@/components/ui/SplitTitle";
-import { Image, Text } from "react-native";
 import { Button } from "react-native-paper";
 import supabase from "@/lib/supabaseClient";
 
+const RADIUS = 16;
+
+// Отдельный компонент — стабильное дерево, Image не перемонтируется
+const InterestCard = ({
+  item,
+  isSelected,
+  onPress,
+}: {
+  item: { id: string; label: string };
+  isSelected: boolean;
+  onPress: () => void;
+}) => {
+  const imageUrl = INTEREST_IMAGES[item.id] || INTEREST_IMAGES.local;
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.gridItem}>
+      <View style={styles.cardWrapper}>
+
+        {/* Image с borderRadius напрямую — без overflow:hidden */}
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} resizeMode="cover" />
+
+        <View style={styles.overlay} />
+
+        <Text style={styles.cardText} numberOfLines={2}>
+          {item.label.toUpperCase()}
+        </Text>
+
+        {/* Всегда в дереве, переключаем только opacity */}
+        <View style={[styles.selectionRing, { opacity: isSelected ? 1 : 0 }]} pointerEvents="none" />
+        <View style={[styles.checkmark, { opacity: isSelected ? 1 : 0 }]} pointerEvents="none">
+          <Ionicons name="checkmark" size={16} color="#FFF" />
+        </View>
+
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 export default function EditInterestScreen() {
-    const { t } = useTranslation();
-    const { user, setUser } = useContext(AuthContext);
+  const { t } = useTranslation();
+  const { user, setUser } = useContext(AuthContext);
 
-    const interestsString = user?.interests;
-    const interestsArray = JSON.parse(interestsString || "[]");
-    const [interests, setInterests] = useState<string[]>(interestsArray || []);
-    const [isLoading, setIsLoading] = useState(false);
+  const interestsRaw = user?.interests;
+  const interestsArray = Array.isArray(interestsRaw)
+    ? interestsRaw
+    : JSON.parse(typeof interestsRaw === "string" ? interestsRaw : "[]");
 
-    const toggle = (id: string) => {
-        setInterests((prev) => {
-            const next = new Set(prev);
+  const [interests, setInterests] = useState<string[]>(interestsArray || []);
+  const [isLoading, setIsLoading] = useState(false);
 
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
+  const toggle = (id: string) => {
+    setInterests((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return Array.from(next);
+    });
+  };
 
-            return Array.from(next);
-        });
-    };
+  const handleSave = async () => {
+    if (interests.length === 0) return alert(t("editInterest.selectAtLeast"));
+    if (!user?.id) return alert(t("editInterest.userNotFound"));
 
-    const handleSave = async () => {
-        if (interests.length === 0) return alert(t('editInterest.selectAtLeast'));
-        if (!user?.id) return alert(t('editInterest.userNotFound'));
+    try {
+      setIsLoading(true);
+      const { data: updatedProfile, error } = await supabase
+        .from("users")
+        .update({ interests: Array.from(interests) })
+        .eq("id", user.id)
+        .select()
+        .single();
 
-        try {
-            setIsLoading(true);
-            const { data: updatedProfile, error } = await supabase
-                .from("users")
-                .update({ interests: Array.from(interests) })
-                .eq("id", user.id)
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            setUser(updatedProfile);
-            router.replace("/profile");
-        } catch (error) {
-            setIsLoading(false);
-            console.error("Error updating user profile:", error);
-            alert(t('editInterest.updateFailed'));
-        } finally {
-            setIsLoading(false);
-        }
+      if (error) throw error;
+      setUser(updatedProfile);
+      router.replace("/profile");
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      alert(t("editInterest.updateFailed"));
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return (
-        <LightScreen>
-            <ScrollView style={styles.container}>
-                <View style={styles.headerContainer}>
-                    <TouchableOpacity onPress={() => router.push("/profile")} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={22} color="#0F172A" />
-                    </TouchableOpacity>
-                </View>
+  return (
+    <LightScreen>
+      <ScrollView style={styles.container}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => router.push("/profile")} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={22} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
 
-                <SplitTitle 
-                    first={t('editInterest.titleFirst')} 
-                    second={t('editInterest.titleSecond')} 
-                />
+        <SplitTitle first={t("editInterest.titleFirst")} second={t("editInterest.titleSecond")} />
 
-                <View style={styles.grid}>
-                    {INTERESTS.map((item) => {
-                        const isSelected = interests.includes(item.id);
-                        const imageUrl = INTEREST_IMAGES[item.id] || INTEREST_IMAGES.local;
-                        return (
-                            <TouchableOpacity
-                                key={item.id}
-                                onPress={() => toggle(item.id)}
-                                activeOpacity={0.9}
-                                style={styles.gridItem}
-                            >
-                                <View style={[styles.card, isSelected && styles.cardSelected]}>
-                                    <Image source={{ uri: imageUrl }} style={styles.cardImage} resizeMode="cover" />
-                                    <View style={styles.overlay} />
-                                    <Text style={styles.cardText} numberOfLines={2}>
-                                        {item.label.toUpperCase()}
-                                    </Text>
-                                    {isSelected && (
-                                        <View style={styles.checkmark}>
-                                            <Ionicons name="checkmark" size={16} color="#FFF" />
-                                        </View>
-                                    )}
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-            </ScrollView>
-            <View style={styles.saveContainer}>
-                <Button 
-                    style={styles.saveButton} 
-                    labelStyle={styles.saveButtonText}
-                    onPress={() => handleSave()}
-                >
-                    {isLoading ? t('editInterest.saving') : t('editInterest.save')}
-                </Button>
-            </View>
-        </LightScreen>
-    )
+        <View style={styles.grid}>
+          {INTERESTS.map((item) => (
+            <InterestCard
+              key={item.id}
+              item={item}
+              isSelected={interests.includes(item.id)}
+              onPress={() => toggle(item.id)}
+            />
+          ))}
+        </View>
+      </ScrollView>
+
+      <View style={styles.saveContainer}>
+        <Button
+          style={styles.saveButton}
+          labelStyle={styles.saveButtonText}
+          onPress={handleSave}
+        >
+          {isLoading ? t("editInterest.saving") : t("editInterest.save")}
+        </Button>
+      </View>
+    </LightScreen>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginLeft: 0,
-    paddingBottom: 12,
-  },
+  container: { paddingHorizontal: 24, paddingTop: 24 },
+  headerContainer: { flexDirection: "row", justifyContent: "space-between", paddingBottom: 12 },
   backButton: {
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: "rgba(241,245,249,0.95)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 22,
-    color: "#0F172A",
-    fontWeight: "700",
-    marginVertical: 20,
-  },
-  label: {
-    marginBottom: 6,
-    color: "#64748B",
-    fontWeight: "600",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.08)",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    backgroundColor: "rgba(255,255,255,0.7)",
+    alignItems: "center", justifyContent: "center",
   },
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 16,
-    gap: 12,
-    marginBottom: 128,
+    flexDirection: "row", flexWrap: "wrap",
+    marginTop: 16, gap: 12, marginBottom: 128,
   },
-  gridItem: {
-    width: "47%",
-  },
-  card: {
+  gridItem: { width: "47%" },
+
+  // НЕТ overflow:"hidden" — ключевой фикс для Android
+  cardWrapper: {
     height: 120,
-    borderRadius: 16,
-    overflow: "hidden",
+    borderRadius: RADIUS,
     position: "relative",
   },
-  cardSelected: {
-    borderWidth: 2,
-    borderColor: "#2DD4BF",
-  },
+  // borderRadius прямо на Image
   cardImage: {
-    width: "100%",
-    height: "100%",
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: RADIUS,
   },
   overlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: RADIUS,
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
   cardText: {
-    position: "absolute",
-    left: 12,
-    right: 12,
-    bottom: 12,
-    color: "#FFF",
-    fontWeight: "700",
-    fontSize: 14,
+    position: "absolute", left: 12, right: 12, bottom: 12,
+    color: "#FFF", fontWeight: "700", fontSize: 14,
+  },
+  // Всегда в дереве — только opacity меняется
+  selectionRing: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: RADIUS,
+    borderWidth: 2.5,
+    borderColor: "#2DD4BF",
   },
   checkmark: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    position: "absolute", top: 8, right: 8,
+    width: 24, height: 24, borderRadius: 12,
     backgroundColor: "#2DD4BF",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
   saveContainer: {
-    position: "absolute",
-    bottom: 16,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    padding: 20,
-    marginTop: 16,
+    position: "absolute", bottom: 16, left: 0, right: 0,
+    zIndex: 10, padding: 20,
   },
-  saveButton: {
-    width: "100%",
-    height: 50,
-    justifyContent: "center",
-    backgroundColor: "#2DD4BF",
-  },
-  saveButtonText: {
-    color: "#0F172A",
-    fontWeight: "600",
-    fontSize: 18,
-  },
+  saveButton: { width: "100%", height: 50, justifyContent: "center", backgroundColor: "#2DD4BF" },
+  saveButtonText: { color: "#0F172A", fontWeight: "600", fontSize: 18 },
 });

@@ -86,3 +86,39 @@ export async function getPlaceDetails(id: string): Promise<DBPlace | null> {
     verified: data.verified || false,
   };
 }
+
+export async function fetchPlacePins(cityName: string): Promise<PlacePin[]> {
+  const { data: cities } = await supabase
+    .from("cities")
+    .select("id")
+    .ilike("name", cityName)
+    .limit(1);
+
+  const cityId = cities?.[0]?.id;
+  if (!cityId) return [];
+
+  const query = supabase
+    .from("places")
+    .select("id, type, coordinates")  // ← только 3 поля
+    .eq("city_id", cityId)
+    .not("coordinates", "is", null);
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+
+  return data
+    .map((p: any) => ({
+      id: p.id,
+      type: p.type ?? "place",
+      latitude: p.coordinates?.latitude ?? null,
+      longitude: p.coordinates?.longitude ?? null,
+    }))
+    .filter((p: PlacePin) => p.latitude && p.longitude);
+}
+
+export interface PlacePin {
+  id: string;
+  type: string;
+  latitude: number;
+  longitude: number;
+}

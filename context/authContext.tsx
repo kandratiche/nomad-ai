@@ -5,6 +5,16 @@ type AuthContextType = {
   user: any;
   loading: boolean;
   setUser: React.Dispatch<React.SetStateAction<any>>;
+
+  /**
+   * Interests the user has been toggling in the onboarding/edit screens but
+   * haven't necessarily been persisted to the server yet. This allows us to
+   * keep a draft selection when the screen unmounts (e.g. hitting back) so
+   * the choices don't vanish immediately. Stored as a simple string array for
+   * serialization ease.
+   */
+  pendingInterests: string[];
+  setPendingInterests: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -18,6 +28,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef<string | null>(null);
   const cacheRef = useRef<{ id: string; data: any; ts: number } | null>(null);
+
+  const [pendingInterests, setPendingInterests] = useState<string[]>([]);
+
+  // whenever we load a fresh profile from the server, make sure the draft
+  // interests mirror whatever is stored. This happens on initial fetch and
+  // also after `setUser` is called following a save.
+  useEffect(() => {
+    if (Array.isArray(user?.interests)) {
+      setPendingInterests(user.interests);
+    }
+  }, [user?.interests]);
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     if (cacheRef.current && cacheRef.current.id === userId && Date.now() - cacheRef.current.ts < 30_000) {
@@ -91,7 +112,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [fetchUserProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        setUser,
+        pendingInterests,
+        setPendingInterests,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
