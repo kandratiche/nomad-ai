@@ -1,8 +1,9 @@
 import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
+import supabase from "@/lib/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { registerUserApi } from "@/services/authApi";
@@ -20,26 +21,31 @@ export default function UserRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
-  const { user } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (user) {
-      router.replace("/home");
-    }
-  }, [user]);
+  const { user, setUser } = useContext(AuthContext);
 
   const handleRegister = async () => {
-  setLoading(true);
-  const data = await registerUserApi({ email, password, confirmPassword, name });
-  setLoading(false);
+    setLoading(true);
+    const data = await registerUserApi({ email, password, confirmPassword, name });
+    setLoading(false);
 
-  if (!data) return;
+    if (!data) return;
 
-  router.replace({
-    pathname: "/auth/city-select",
-    params: { new: "true" },
-  });
-};
+    const session = await supabase.auth.getSession();
+    const userId = session.data.session?.user?.id;
+    if (userId) {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (profile) setUser(profile);
+    }
+
+    router.replace({
+      pathname: "/auth/city-select",
+      params: { new: "true" },
+    });
+  };
 
   return (
     <LightScreen>
@@ -162,72 +168,16 @@ export default function UserRegister() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1 
-  },
-  headerContainer: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    marginLeft: 0, 
-    paddingBottom: 12 
-  },
-  backButton: { 
-    top: 24, 
-    left: 24, 
-    zIndex: 10, 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
-    backgroundColor: "rgba(241,245,249,0.95)", 
-    alignItems: "center", 
-    justifyContent: "center" 
-  },
-  title: { 
-    marginTop: 50, 
-    marginBottom: 20, 
-    marginLeft: 24 
-  },
-  glassCard: { 
-    borderRadius: 24, 
-    marginBottom: 20 
-  },
-  glassCardContent: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    paddingHorizontal: 16, 
-    paddingVertical: 12 
-  },
-  input: { 
-    flex: 1, 
-    color: "#0F172A", 
-    fontSize: 16, 
-    paddingVertical: 4, 
-    ...(Platform.OS === "web" && { outlineStyle: "none" }) 
-  },
-  fieldContainer: { 
-    marginBottom: 8, 
-    width: "90%" 
-  },
-  screenContainer: { 
-    flex: 1, 
-    alignItems: "center", 
-    marginBottom: 124 
-  },
-  button: { 
-    width: "100%", 
-    marginTop: 12, 
-    borderRadius: 24, 
-    backgroundColor: "#2DD4BF", 
-    paddingVertical: 16, 
-    paddingHorizontal: 16, 
-    alignItems: "center" 
-  },
-  buttonDisabled: { 
-    opacity: 0.5 
-  },
-  buttonText: { 
-    color: "#FFF", 
-    fontSize: 16, 
-    fontWeight: "600" 
-  },
+  container: { flex: 1 },
+  headerContainer: { flexDirection: "row", justifyContent: "space-between", marginLeft: 0, paddingBottom: 12 },
+  backButton: { top: 24, left: 24, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(241,245,249,0.95)", alignItems: "center", justifyContent: "center" },
+  title: { marginTop: 50, marginBottom: 20, marginLeft: 24 },
+  glassCard: { borderRadius: 24, marginBottom: 20 },
+  glassCardContent: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12 },
+  input: { flex: 1, color: "#0F172A", fontSize: 16, paddingVertical: 4, ...(Platform.OS === "web" && { outlineStyle: "none" }) },
+  fieldContainer: { marginBottom: 8, width: "90%" },
+  screenContainer: { flex: 1, alignItems: "center", marginBottom: 124 },
+  button: { width: "100%", marginTop: 12, borderRadius: 24, backgroundColor: "#2DD4BF", paddingVertical: 16, paddingHorizontal: 16, alignItems: "center" },
+  buttonDisabled: { opacity: 0.5 },
+  buttonText: { color: "#FFF", fontSize: 16, fontWeight: "600" },
 });

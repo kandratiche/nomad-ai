@@ -21,7 +21,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F172A"
       },
-      "package": "com.nomadai.app"
+      "package": "com.nomadai.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCmaTFG6Xr49L290ma_Xs5S5Y9iry2LHAQ"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

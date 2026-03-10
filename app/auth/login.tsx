@@ -9,6 +9,8 @@ import { loginUserApi } from "@/services/authApi";
 import { AuthContext } from "@/context/authContext";
 import { CaptionText } from "@/components/ui/ThemedText";
 import { useTranslation } from "react-i18next";
+import supabase from "@/lib/supabaseClient";
+
 
 export default function UserLogin() {
     const { t } = useTranslation();
@@ -21,27 +23,29 @@ export default function UserLogin() {
     const [errorMessage, setErrorMessage] = React.useState<string>("");
     const { user, setUser } = useContext(AuthContext);
     
-    useEffect(() => {
-        if (user) {
-            router.replace("/home");
-        }
-    }, [user]);
-
     const handleLogin = async () => {
-        setLoading(true);
-        const data = await loginUserApi({ email, password });
-        setLoading(false);
+    setLoading(true);
+    const data = await loginUserApi({ email, password });
+    setLoading(false);
 
-        if (!data?.user) return;
+    if (!data?.user) return;
 
-        console.log("Logged in:", data.user.email);
-        setUser(data);
+    
+    const { data: profile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
 
-        router.replace({
-            pathname: "auth/city-select",
-            params: { new: "true" },
-        });
-    };
+    if (profile) {
+        setUser(profile);
+    }
+
+    router.replace({
+        pathname: "auth/city-select",
+        params: { new: "true" },
+    });
+};
 
     return (
         <LightScreen>
