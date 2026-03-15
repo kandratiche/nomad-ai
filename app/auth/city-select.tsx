@@ -1,6 +1,6 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
-  View, Text, TouchableOpacity, ScrollView, Image, StyleSheet,
+  View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +13,8 @@ import { CaptionText } from "../../components/ui/ThemedText";
 import { AuthContext } from "@/context/authContext";
 import { useLocalSearchParams } from "expo-router";
 import supabase from "@/lib/supabaseClient";
+import * as Location from "expo-location";
+
 
 type CitySelectScreenProps = { new: string };
 
@@ -23,6 +25,70 @@ export default function CitySelectScreen() {
   const { user, setUser } = useContext(AuthContext);
   const [selectedId, setSelectedId] = React.useState<string | null>(user?.home_city || "Almaty");
 
+const CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
+  Astana: { latitude: 51.1694, longitude: 71.4491 },
+  Almaty: { latitude: 43.222, longitude: 76.8512 },
+  Aktau: { latitude: 43.6352, longitude: 51.1478 },
+};
+
+const [locateToast, setLocateToast] = useState<string | null>(null);
+
+const handleLocateMe = async () => {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      return alert(t("citySelect.somethingWrong"));
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+    const { latitude, longitude } = location.coords;
+
+    let closest = CITIES[0].id;
+    let minDist = Infinity;
+
+    for (const city of CITIES) {
+      const coords = CITY_COORDS[city.id];
+      if (!coords) continue;
+      const dist = Math.sqrt(
+        Math.pow(latitude - coords.latitude, 2) +
+        Math.pow(longitude - coords.longitude, 2)
+      );
+      if (dist < minDist) {
+        minDist = dist;
+        closest = city.id;
+      }
+    }
+
+    setSelectedId(closest);
+    setLocateToast(closest);
+
+    // Сохраняем в базу
+    if (!user?.id) return;
+
+    const { data: updatedProfile, error } = await supabase
+      .from("users")
+      .update({ home_city: closest })
+      .eq("id", user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (updatedProfile) setUser(updatedProfile);
+
+    // Через 1.5 сек убираем toast и переходим дальше
+    setTimeout(() => {
+      setLocateToast(null);
+      if (isNew) {
+        router.replace("/auth/vibe-check");
+      } else {
+        router.replace("/home");
+      }
+    }, 1500);
+  } catch (err) {
+    console.warn("Location error:", err);
+    alert(t("citySelect.somethingWrong"));
+  }
+};
   const handleContinue = async () => {
     if (!selectedId) return alert(t("citySelect.selectCity"));
     if (!user?.id) return alert(t("citySelect.userNotFound"));
@@ -37,6 +103,8 @@ export default function CitySelectScreen() {
 
       if (error) throw error;
 
+      if (updatedProfile) setUser(updatedProfile); 
+
       if (isNew) {
         router.replace("/auth/vibe-check");
       } else {
@@ -48,9 +116,15 @@ export default function CitySelectScreen() {
     }
   };
 
-  return (
+ return (
     <LightScreen>
       <View style={styles.container}>
+        {locateToast && (
+          <View style={styles.toast}>
+            <Ionicons name="location" size={18} color="#2DD4BF" />
+            <Text style={styles.toastText}>📍 {locateToast}</Text>
+          </View>
+        )}
         <View style={styles.topBar}>
           <TouchableOpacity
             onPress={() => router.replace(isNew ? "/auth/register" : "/home")}
@@ -71,7 +145,7 @@ export default function CitySelectScreen() {
           style={styles.title}
         />
 
-        <TouchableOpacity style={styles.locateButton} onPress={handleContinue}>
+        <TouchableOpacity style={styles.locateButton} onPress={handleLocateMe}>
           <Ionicons name="compass-outline" size={20} color="#2DD4BF" style={styles.locateIcon} />
           <Text style={styles.locateText}>{t("citySelect.locateMe")}</Text>
         </TouchableOpacity>
@@ -130,6 +204,30 @@ export default function CitySelectScreen() {
 }
 
 const styles = StyleSheet.create({
+  toast: {
+  position: "absolute",
+  top: 10,
+  left: 24,
+  right: 24,
+  zIndex: 100,
+  backgroundColor: "#0F172A",
+  borderRadius: 16,
+  paddingVertical: 14,
+  paddingHorizontal: 20,
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 10,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  elevation: 8,
+},
+toastText: {
+  color: "#FFF",
+  fontSize: 18,
+  fontWeight: "700",
+},
   container: { flex: 1, paddingHorizontal: 24, paddingTop: 24 },
   topBar: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",

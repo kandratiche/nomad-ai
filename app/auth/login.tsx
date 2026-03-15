@@ -2,7 +2,7 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
 import React, { useContext, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView, ScrollView  } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { loginUserApi } from "@/services/authApi";
@@ -22,38 +22,54 @@ export default function UserLogin() {
     const [isError, setIsError] = React.useState<boolean>(false);
     const [errorMessage, setErrorMessage] = React.useState<string>("");
     const { user, setUser } = useContext(AuthContext);
+    const scrollRef = React.useRef<ScrollView>(null);
+
     
     const handleLogin = async () => {
     setLoading(true);
-    const data = await loginUserApi({ email, password });
-    setLoading(false);
+    try {
+      const data = await loginUserApi({ email, password });
 
-    if (!data?.user) return;
+      if (!data?.user) {
+        setLoading(false);
+        return;
+      }
 
-    
-    const { data: profile } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
+      const { data: profile } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
 
-    if (profile) {
-        setUser(profile);
+      if (profile) {
+          setUser(profile);
+      }
+
+      router.replace({
+          pathname: "auth/city-select",
+          params: { new: "true" },
+      });
+    } catch (err) {
+      console.error("Login error:", err);
+    } finally {
+      setLoading(false);
     }
-
-    router.replace({
-        pathname: "auth/city-select",
-        params: { new: "true" },
-    });
 };
+    
+
 
     return (
         <LightScreen>
             <KeyboardAvoidingView 
-                style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}    
-            >
-                <View style={styles.container}>
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}    
+>
+    <ScrollView 
+        ref={scrollRef}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+    >
+        <View style={styles.container}>
                     <View style={styles.headerContainer}>
                         <TouchableOpacity 
                             onPress={() => { router.push('/') }} 
@@ -100,6 +116,7 @@ export default function UserLogin() {
                                     style={styles.input}
                                     placeholderTextColor="#94A3B8"
                                     returnKeyType="send"
+
                                 />
                                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                                     <Ionicons 
@@ -132,6 +149,7 @@ export default function UserLogin() {
                         </View>
                     </View>
                 </View>
+            </ScrollView>
             </KeyboardAvoidingView>
         </LightScreen>
     );

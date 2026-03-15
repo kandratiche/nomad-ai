@@ -137,6 +137,8 @@
     "myTrips": "My Trips"
   },
   "profile": {
+    "toursJoined": "TOURS JOINED",
+    "points": "POINTS",
     "myTrips": "My Trips",
     "editProfile": "Edit Profile",
     "editInterests": "Edit Interests",

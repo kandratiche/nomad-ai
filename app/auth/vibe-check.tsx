@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 export const INTEREST_IMAGES: Record<string, string> = {
   food:        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400",
-  culture:     "https://images.unsplash.com/photo-1567596434663-f8c2d2e1e8a8?w=400",
+  culture:     "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=400",
   nightlife:   "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=400",
   nature:      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400",
   adventure:   "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400",

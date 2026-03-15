@@ -120,6 +120,7 @@
     "unknownCity": "Неизвестно"
   },
   "trips": {
+    "upcoming": "Предстоящие",
     "welcomeBack": "С возвращением",
     "noSavedTrips": "Пока нет сохранённых поездок",
     "noPastTrips": "Вы не были в поездках",
@@ -136,6 +137,8 @@
     "myTrips": "Мои трипы"
   },
   "profile": {
+    "toursJoined": "ТУРЫ",
+    "points": "ОЧКИ",
     "myTrips": "Мои поездки",
     "editProfile": "Редактировать профиль",
     "editInterests": "Редактировать интересы",

@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import React, { useContext } from "react";
 import supabase from "@/lib/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet, KeyboardAvoidingView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet, KeyboardAvoidingView, ScrollView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { registerUserApi } from "@/services/authApi";
@@ -20,39 +20,55 @@ export default function UserRegister() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const scrollRef = React.useRef<ScrollView>(null);
+
 
   const { user, setUser } = useContext(AuthContext);
 
   const handleRegister = async () => {
     setLoading(true);
-    const data = await registerUserApi({ email, password, confirmPassword, name });
-    setLoading(false);
+    try {
+      const data = await registerUserApi({ email, password, confirmPassword, name });
 
-    if (!data) return;
+      if (!data) {
+        setLoading(false);
+        return;
+      }
 
-    const session = await supabase.auth.getSession();
-    const userId = session.data.session?.user?.id;
-    if (userId) {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (profile) setUser(profile);
+      const session = await supabase.auth.getSession();
+      const userId = session.data.session?.user?.id;
+      if (userId) {
+        const { data: profile } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", userId)
+            .single();
+        if (profile) setUser(profile);
+      }
+
+      router.replace({
+          pathname: "/auth/city-select",
+          params: { new: "true" },
+      });
+    } catch (err) {
+      console.error("Register error:", err);
+    } finally {
+      setLoading(false);
     }
+};
 
-    router.replace({
-      pathname: "/auth/city-select",
-      params: { new: "true" },
-    });
-  };
 
   return (
     <LightScreen>
-      <KeyboardAvoidingView
+      <KeyboardAvoidingView 
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
+        behavior={Platform.OS === "ios" ? "padding" : undefined}    
+>
+    <ScrollView 
+        ref={scrollRef}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+    >
         <View style={styles.container}>
           <View style={styles.headerContainer}>
             <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
@@ -114,6 +130,7 @@ export default function UserRegister() {
                   style={styles.input}
                   returnKeyType="next"
                   editable={!loading}
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollTo({ y: 250, animated: true }), 300)}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                   <Ionicons
@@ -138,6 +155,7 @@ export default function UserRegister() {
                   style={styles.input}
                   editable={!loading}
                   onSubmitEditing={handleRegister}
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollTo({ y: 250, animated: true }), 300)}
                 />
                 <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <Ionicons
@@ -162,13 +180,14 @@ export default function UserRegister() {
             </View>
           </View>
         </View>
+      </ScrollView>
       </KeyboardAvoidingView>
     </LightScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, paddingBottom: 40 },
   headerContainer: { flexDirection: "row", justifyContent: "space-between", marginLeft: 0, paddingBottom: 12 },
   backButton: { top: 24, left: 24, zIndex: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(241,245,249,0.95)", alignItems: "center", justifyContent: "center" },
   title: { marginTop: 50, marginBottom: 20, marginLeft: 24 },
