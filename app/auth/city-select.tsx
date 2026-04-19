@@ -12,7 +12,7 @@ import { SplitTitle } from "../../components/ui/SplitTitle";
 import { CaptionText } from "../../components/ui/ThemedText";
 import { AuthContext } from "@/context/authContext";
 import { useLocalSearchParams } from "expo-router";
-import supabase from "@/lib/supabaseClient";
+import { updateUserApi } from "@/api/services/authApi";
 
 type CitySelectScreenProps = { new: string };
 
@@ -28,14 +28,9 @@ export default function CitySelectScreen() {
     if (!user?.id) return alert(t("citySelect.userNotFound"));
 
     try {
-      const { data: updatedProfile, error } = await supabase
-        .from("users")
-        .update({ home_city: selectedId })
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const updatedProfile = await updateUserApi({ home_city: selectedId });
+      if (!updatedProfile) throw new Error("Failed to update city");
+      setUser(updatedProfile);
 
       if (isNew) {
         router.replace("/auth/vibe-check");

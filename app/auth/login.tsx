@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
-import { loginUserApi } from "@/services/authApi";
+import { loginUserApi } from "@/api/services/authApi";
 import { AuthContext } from "@/context/authContext";
 import { CaptionText } from "@/components/ui/ThemedText";
 import { useTranslation } from "react-i18next";
@@ -35,7 +35,7 @@ export default function UserLogin() {
         if (!data?.user) return;
 
         console.log("Logged in:", data.user.email);
-        setUser(data);
+        setUser(data.user);
 
         router.replace({
             pathname: "auth/city-select",
@@ -172,7 +172,6 @@ const styles = StyleSheet.create({
         color: "#0F172A",
         fontSize: 16,
         paddingVertical: 4,
-        ...(Platform.OS === 'web' && { outlineStyle: 'none' }),
     },
     fieldContainer: {
         marginBottom: 8,

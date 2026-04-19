@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchGuides, getGuideDetails } from "@/services/guidesService";
+import { fetchGuides, getGuideDetails } from "@/api/services/guidesService";
 
 export function useGuides(city?: string) {
   return useQuery({

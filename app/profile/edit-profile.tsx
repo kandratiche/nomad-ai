@@ -17,9 +17,9 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { BodyText } from "@/components/ui/ThemedText";
 import { AuthContext } from "@/context/authContext";
-import supabase from "@/lib/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
 import { SplitTitle } from "@/components/ui/SplitTitle";
+import { updateUserApi } from "@/api/services/authApi";
 
 export default function EditProfileScreen() {
     const { t } = useTranslation();
@@ -89,15 +89,9 @@ export default function EditProfileScreen() {
             const updatePayload: any = { name, phone_number: phoneNumber };
             if (avatarUrl) updatePayload.avatar_url = avatarUrl;
 
-            const { data: profileData, error: profileError } = await supabase
-                .from("users")
-                .update(updatePayload)
-                .eq("id", userId)
-                .select()
-                .single();
-
-            if (profileError) {
-                Alert.alert(t('editProfile.error'), profileError.message);
+            const profileData = await updateUserApi(updatePayload);
+            if (!profileData) {
+                Alert.alert(t('editProfile.error'), t('editProfile.somethingWrong'));
                 return;
             }
 

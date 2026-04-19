@@ -9,7 +9,7 @@ import { changeLanguage } from "@/app/i18n";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { BodyText } from "@/components/ui/ThemedText";
 import { AuthContext } from "@/context/authContext";
-import supabase from "@/lib/supabaseClient";
+import { updateUserApi } from "@/api/services/authApi";
 
 export const LANGUAGES = [
     { code: "en", label: "English" },
@@ -35,16 +35,10 @@ export default function AppLanguageScreen() {
 
             await changeLanguage(language);
 
-            const { data: profileData, error: profileError } = await supabase
-                .from("users")
-                .update({ languages: language })
-                .eq("id", userId)
-                .select()
-                .single();
-
-            if (profileError) {
-                setError(profileError.message);
-                Alert.alert("Error", profileError.message);
+            const profileData = await updateUserApi({ languages: language });
+            if (!profileData) {
+                setError(t('language.error'));
+                Alert.alert("Error", t('language.error'));
                 return;
             }
 

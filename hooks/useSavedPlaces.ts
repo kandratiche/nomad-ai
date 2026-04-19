@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSavedPlaces, toggleSavedPlace } from "@/services/savedPlacesService";
+import { getSavedPlaces, toggleSavedPlace } from "@/api/services/savedPlacesService";
 
 export function useSavedPlaces(userId: string | null) {
   return useQuery({

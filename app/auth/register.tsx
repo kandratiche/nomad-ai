@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
-import { registerUserApi } from "@/services/authApi";
+import { registerUserApi } from "@/api/services/authApi";
 import { AuthContext } from "@/context/authContext";
 import { useTranslation } from "react-i18next";
 
@@ -20,7 +20,7 @@ export default function UserRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
-  const { user } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
 
   useEffect(() => {
     if (user) {
@@ -34,6 +34,7 @@ export default function UserRegister() {
   setLoading(false);
 
   if (!data) return;
+  if (data.user) setUser(data.user);
 
   router.replace({
     pathname: "/auth/city-select",
@@ -201,8 +202,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     color: "#0F172A", 
     fontSize: 16, 
-    paddingVertical: 4, 
-    ...(Platform.OS === "web" && { outlineStyle: "none" }) 
+    paddingVertical: 4
   },
   fieldContainer: { 
     marginBottom: 8, 

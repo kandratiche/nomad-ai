@@ -8,8 +8,8 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ShieldCheck, Sparkles } from "lucide-react-native";
 import { AuthContext } from "@/context/authContext";
-import supabase from "@/lib/supabaseClient";
 import { NeonButton } from "@/components/ui/NeonButton";
+import { updateUserApi } from "@/api/services/authApi";
 
 const SPECIALTIES = [
   "City Tours", "Food Tours", "Photography Walks", "Mountain Tours",
@@ -62,19 +62,9 @@ export default function BecomeGuideScreen() {
         schedule: {},
       };
 
-      const { error } = await supabase
-        .from("users")
-        .update({ roles: "guide", guide_info: guideInfo })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      const { data: updated } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      if (updated) setUser(updated);
+      const updated = await updateUserApi({ roles: "guide", guide_info: guideInfo });
+      if (!updated) throw new Error("Failed to become guide");
+      setUser(updated);
 
       const msg = t("guide.nowGuide");
       if (Platform.OS === "web") {

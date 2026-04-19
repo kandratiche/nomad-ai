@@ -16,11 +16,11 @@ import { LightScreen } from "@/components/ui/LightScreen";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { BodyText, CaptionText } from "@/components/ui/ThemedText";
 import { AuthContext } from "@/context/authContext";
-import supabase from "@/lib/supabaseClient";
 import { Button } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import { Crown, Plus, ShieldCheck } from "lucide-react-native";
 import { useMyGuideTours } from "@/hooks/useTours";
+import { logoutUserApi } from "@/api/services/authApi";
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -41,11 +41,7 @@ export default function ProfileScreen() {
   const handleLogOut = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        Alert.alert(t("profile.error"), error.message);
-        return;
-      }
+      await logoutUserApi();
       setUser(null);
       if (Platform.OS === "web") {
         alert(t("profile.signOut"));

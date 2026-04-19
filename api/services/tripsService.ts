@@ -1,5 +1,5 @@
-import supabase from "@/lib/supabaseClient";
 import type { AIResponse } from "@/types";
+import { createTripApi, deleteTripApi, fetchTripsByUser } from "@/api/tripsApi";
 
 export interface DBTrip {
   id: string;
@@ -26,47 +26,29 @@ export async function saveTrip(params: {
   totalDuration?: string;
   estimatedCost?: string;
 }): Promise<DBTrip | null> {
-  const { data, error } = await supabase
-    .from("trips")
-    .insert({
-      user_id: params.userId,
-      title: params.title,
-      city: params.city,
-      route_json: params.routeJson,
-      preview_image_url: params.previewImageUrl || "",
-      total_safety_score: params.totalSafetyScore || 0,
-      total_duration: params.totalDuration || "",
-      estimated_cost: params.estimatedCost || "",
-    })
-    .select()
-    .single();
-
-  if (error) {
+  try {
+    return await createTripApi(params);
+  } catch (error) {
     console.error("saveTrip error:", error);
     return null;
   }
-  return data as DBTrip;
 }
 
 export async function getMyTrips(userId: string): Promise<DBTrip[]> {
-  const { data, error } = await supabase
-    .from("trips")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error || !data) {
+  try {
+    return await fetchTripsByUser(userId);
+  } catch (error) {
     console.error("getMyTrips error:", error);
     return [];
   }
-  return data as DBTrip[];
 }
 
 export async function deleteTrip(id: string): Promise<boolean> {
-  const { error } = await supabase.from("trips").delete().eq("id", id);
-  if (error) {
+  try {
+    await deleteTripApi(id);
+    return true;
+  } catch (error) {
     console.error("deleteTrip error:", error);
     return false;
   }
-  return true;
 }

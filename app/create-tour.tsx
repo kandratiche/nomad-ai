@@ -12,7 +12,7 @@ import { NeonButton } from "@/components/ui/NeonButton";
 import { GoldBorderCard } from "@/components/ui/GoldBorderCard";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { useCreateTour } from "@/hooks/useTours";
-import { enhanceDescriptionWithAI } from "@/services/toursService";
+import { enhanceDescriptionWithAI } from "@/api/services/toursService";
 
 export default function CreateTourScreen() {
   const { t } = useTranslation();

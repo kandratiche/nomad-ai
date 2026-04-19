@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchPlaces, getPlaceDetails, type PlaceFilter } from "@/services/placesService";
+import { fetchPlaces, getPlaceDetails, type PlaceFilter } from "@/api/services/placesService";
 
 export function usePlaces(filter?: PlaceFilter) {
   return useQuery({

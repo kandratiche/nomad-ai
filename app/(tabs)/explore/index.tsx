@@ -26,7 +26,7 @@ import { useGuides } from "@/hooks/useGuides";
 import { useSavedPlaces, useToggleSavedPlace } from "@/hooks/useSavedPlaces";
 import { useTours } from "@/hooks/useTours";
 import type { DBPlace } from "@/lib/places";
-import type { DBGuide } from "@/services/guidesService";
+import type { DBGuide } from "@/api/services/guidesService";
 import PlaceDetailModal from "@/components/PlaceDetailModal";
 import { TourCard } from "@/components/TourCard";
 import { MapView, Marker, isMapAvailable } from "@/lib/maps";

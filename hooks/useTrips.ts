@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getMyTrips, saveTrip, deleteTrip } from "@/services/tripsService";
+import { getMyTrips, saveTrip, deleteTrip } from "@/api/services/tripsService";
 
 export function useMyTrips(userId: string | null) {
   return useQuery({

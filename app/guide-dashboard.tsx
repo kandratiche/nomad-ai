@@ -12,7 +12,7 @@ import { useMyGuideTours, useUpdateParticipant } from "@/hooks/useTours";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { GoldBorderCard } from "@/components/ui/GoldBorderCard";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
-import { getTourDetails } from "@/services/toursService";
+import { getTourDetails } from "@/api/services/toursService";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function GuideDashboardScreen() {

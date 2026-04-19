@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchTours, getTourDetails, createTour, joinTour, getMyTours,
   updateParticipantStatus, getMyBookings, getTourReviews, submitReview,
-} from "@/services/toursService";
+} from "@/api/services/toursService";
 
 export function useTours(city?: string) {
   return useQuery({

@@ -6,8 +6,8 @@ import { LightScreen } from "../../components/ui/LightScreen";
 import { BodyText } from "../../components/ui/ThemedText";
 import { INTERESTS } from "@/constants/mockData";
 import { AuthContext } from "@/context/authContext";
-import supabase from "@/lib/supabaseClient";
 import { useTranslation } from "react-i18next";
+import { updateUserApi } from "@/api/services/authApi";
 
 export const INTEREST_IMAGES: Record<string, string> = {
   food:        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400",
@@ -98,13 +98,8 @@ export default function VibeCheckScreen() {
     if (selected.size === 0) return Alert.alert(t("vibeCheck.selectInterest"));
     if (!user?.id) return Alert.alert(t("vibeCheck.userNotFound"));
     try {
-      const { data: updatedProfile, error } = await supabase
-        .from("users")
-        .update({ interests: Array.from(selected) })
-        .eq("id", user.id)
-        .select()
-        .single();
-      if (error) throw error;
+      const updatedProfile = await updateUserApi({ interests: Array.from(selected) });
+      if (!updatedProfile) throw new Error("Failed to update interests");
       setUser(updatedProfile);
       router.replace("/home");
     } catch (err: any) {

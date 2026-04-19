@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { fetchMessages, sendMessage, subscribeToMessages, type ChatMessage } from "@/services/chatService";
+import { fetchMessages, sendMessage, subscribeToMessages, type ChatMessage } from "@/api/services/chatService";
 
 export function useTourChat(tourId: string | null, userId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);

@@ -5,7 +5,7 @@ import { Clock, MapPin, Crown } from "lucide-react-native";
 import { GoldBorderCard } from "./ui/GoldBorderCard";
 import { VerifiedBadge } from "./ui/VerifiedBadge";
 import { PartyProgress } from "./PartyProgress";
-import type { DBTour } from "@/services/toursService";
+import type { DBTour } from "@/api/services/toursService";
 
 interface Props {
   tour: DBTour;

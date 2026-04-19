@@ -10,7 +10,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { Button } from "react-native-paper";
-import supabase from "@/lib/supabaseClient";
+import { updateUserApi } from "@/api/services/authApi";
 
 const RADIUS = 16;
 
@@ -77,14 +77,8 @@ export default function EditInterestScreen() {
 
     try {
       setIsLoading(true);
-      const { data: updatedProfile, error } = await supabase
-        .from("users")
-        .update({ interests: Array.from(interests) })
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const updatedProfile = await updateUserApi({ interests: Array.from(interests) });
+      if (!updatedProfile) throw new Error("Failed to update interests");
       setUser(updatedProfile);
       router.replace("/profile");
     } catch (error) {
