@@ -72,7 +72,7 @@
     "bookMessage": "Hi! I'd like to book the \"{{title}}\" experience."
   },
   "home": {
-    "welcome": "Welcome to Nomad",
+    "welcome": "Welcome to TravelMe",
     "guestMessage": "You are not logged in. Please log in to access your profile.",
     "logIn": "Log In",
     "profileOnline": "● Online",
@@ -192,7 +192,7 @@
   "vibeCheck": {
     "title": "WHAT MOVES",
     "subtitle": "YOU?",
-    "description": "Select your interests so Nomad AI can craft your perfect adventure.",
+    "description": "Select your interests so TravelMe AI can craft your perfect adventure.",
     "continue": "LET'S GO",
     "selectInterest": "Please select at least one interest",
     "userNotFound": "User not found",

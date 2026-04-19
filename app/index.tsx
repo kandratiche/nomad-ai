@@ -26,7 +26,7 @@ export default function WelcomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.logoContainer}>
-          <SplitTitle first="Nomad" second="AI" />
+          <SplitTitle first="Travel" second="Me" />
         </View>
         <BodyText style={styles.description}>
           {t('welcome.description')}
