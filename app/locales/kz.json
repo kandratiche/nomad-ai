@@ -137,6 +137,8 @@
     "myTrips": "Менің сапарларым"
   },
   "profile": {
+    "toursJoined": "ҚОСЫЛҒАН ТУРЛАР",
+    "points": "ҰПАЙЛАР",
     "myTrips": "Менің сапарларым",
     "editProfile": "Профильді өңдеу",
     "editInterests": "Мүдделерді өңдеу",

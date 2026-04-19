@@ -112,13 +112,13 @@ export default function ProfileScreen() {
             </GlassCardOnLight>
             <GlassCardOnLight style={styles.statCard}>
               <View style={styles.statContent}>
-                <CaptionText style={styles.statCaption}>TOURS JOINED</CaptionText>
+                <CaptionText style={styles.statCaption}>{t("profile.toursJoined")}</CaptionText>
                 <Text style={styles.statNumber}>{user.tours_joined ?? 0}</Text>
               </View>
             </GlassCardOnLight>
             <GlassCardOnLight style={styles.statCard}>
               <View style={styles.statContent}>
-                <CaptionText style={styles.statCaption}>POINTS</CaptionText>
+                <CaptionText style={styles.statCaption}>{t("profile.points")}</CaptionText>
                 <Text style={[styles.statNumber, { color: "#FFBF00" }]}>{user.total_points ?? 0}</Text>
               </View>
             </GlassCardOnLight>
@@ -163,7 +163,7 @@ export default function ProfileScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.guideBadgeTitle}>NOMAD GUIDE</Text>
-                <Text style={styles.guideBadgeSub}>{myTours.length} {myTours.length === 1 ? "tour" : "tours"} created</Text>
+                <Text style={styles.guideBadgeSub}>{myTours.length} {t("guide.tours").toLowerCase()}</Text>
               </View>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -172,14 +172,14 @@ export default function ProfileScreen() {
                 onPress={() => router.push("/create-tour")}
               >
                 <Plus size={18} color="#0F172A" />
-                <Text style={styles.createTourText}>New Tour</Text>
+                <Text style={styles.createTourText}>{t("createTour.title")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.createTourButton, { flex: 1, backgroundColor: "rgba(255,191,0,0.15)" }]}
                 onPress={() => router.push("/guide-dashboard")}
               >
                 <Crown size={18} color="#FFBF00" />
-                <Text style={[styles.createTourText, { color: "#FFBF00" }]}>Dashboard</Text>
+                <Text style={[styles.createTourText, { color: "#FFBF00" }]}>{t("guide.dashboard")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -192,8 +192,8 @@ export default function ProfileScreen() {
               <Crown size={20} color="#FFBF00" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.becomeGuideTitle}>Become a Guide</Text>
-              <Text style={styles.becomeGuideSub}>Share your city, earn money</Text>
+              <Text style={styles.becomeGuideTitle}>{t("guide.becomeGuide")}</Text>
+              <Text style={styles.becomeGuideSub}>{t("guide.becomeDesc")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#FFBF00" />
           </TouchableOpacity>

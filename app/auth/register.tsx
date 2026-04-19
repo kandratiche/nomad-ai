@@ -1,8 +1,9 @@
 import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
+import supabase from "@/lib/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TextInput, TouchableOpacity, Platform, Alert, StyleSheet, KeyboardAvoidingView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet, KeyboardAvoidingView, ScrollView } from "react-native";
 import { SplitTitle } from "@/components/ui/SplitTitle";
 import { GlassCardOnLight } from "@/components/ui/GlassCard";
 import { registerUserApi } from "@/api/services/authApi";
@@ -19,6 +20,8 @@ export default function UserRegister() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const scrollRef = React.useRef<ScrollView>(null);
+
 
   const { user, setUser } = useContext(AuthContext);
 
@@ -36,18 +39,29 @@ export default function UserRegister() {
   if (!data) return;
   if (data.user) setUser(data.user);
 
-  router.replace({
-    pathname: "/auth/city-select",
-    params: { new: "true" },
-  });
+      router.replace({
+          pathname: "/auth/city-select",
+          params: { new: "true" },
+      });
+    } catch (err) {
+      console.error("Register error:", err);
+    } finally {
+      setLoading(false);
+    }
 };
+
 
   return (
     <LightScreen>
-      <KeyboardAvoidingView
+      <KeyboardAvoidingView 
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
+        behavior={Platform.OS === "ios" ? "padding" : undefined}    
+>
+    <ScrollView 
+        ref={scrollRef}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+    >
         <View style={styles.container}>
           <View style={styles.headerContainer}>
             <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
@@ -109,6 +123,7 @@ export default function UserRegister() {
                   style={styles.input}
                   returnKeyType="next"
                   editable={!loading}
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollTo({ y: 250, animated: true }), 300)}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                   <Ionicons
@@ -133,6 +148,7 @@ export default function UserRegister() {
                   style={styles.input}
                   editable={!loading}
                   onSubmitEditing={handleRegister}
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollTo({ y: 250, animated: true }), 300)}
                 />
                 <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <Ionicons
@@ -157,6 +173,7 @@ export default function UserRegister() {
             </View>
           </View>
         </View>
+      </ScrollView>
       </KeyboardAvoidingView>
     </LightScreen>
   );

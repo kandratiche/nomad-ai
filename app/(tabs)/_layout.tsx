@@ -7,6 +7,8 @@ import { useContext, useEffect } from "react";
 import { AuthContext } from "@/context/authContext";
 import { router } from "expo-router";
 import { useMyBookings, useMyGuideTours } from "@/hooks/useTours";
+import { useTranslation } from "react-i18next";
+
 
 function BadgeIcon({ name, color, size, badge }: { name: any; color: string; size: number; badge: number }) {
   return (
@@ -31,6 +33,7 @@ const badgeStyles = StyleSheet.create({
 });
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const { user, loading } = useContext(AuthContext);
   const { data: bookings = [] } = useMyBookings(user?.id || null);
   const pendingBookings = bookings.filter(b => b.status === "pending").length;
@@ -69,21 +72,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home/index"
         options={{
-          title: "Home",
+          title: t("tabs.home"),
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore/index"
         options={{
-          title: "Explore",
+          title: t("tabs.explore"),
           tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="trips/index"
         options={{
-          title: "Trips",
+          title: t("tabs.trips"),
           tabBarIcon: ({ color, size }) => (
             <BadgeIcon name="calendar" color={color} size={size} badge={pendingBookings} />
           ),
@@ -92,7 +95,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile/index"
         options={{
-          title: "Profile",
+          title: t("tabs.profile"),
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
