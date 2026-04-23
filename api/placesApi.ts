@@ -36,7 +36,7 @@ export async function fetchPlacePinsApi(cityName: string): Promise<
 }
 
 export async function fetchAllPlacesApi(): Promise<DBPlace[]> {
-  const payload = await apiClient.get<ApiEnvelope<DBPlace[]>>(buildBackendPath("/places/all"));
+  const payload = await apiClient.get<ApiEnvelope<DBPlace[]>>(buildBackendPath("/places"));
   return unwrapData(payload);
 }
 

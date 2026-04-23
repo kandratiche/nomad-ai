@@ -1,6 +1,6 @@
 import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   View,
@@ -8,7 +8,6 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
-  Alert,
   StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
@@ -29,29 +28,35 @@ export default function UserLogin() {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [isError, setIsError] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>("");
-  const { user, setUser } = useContext(AuthContext);
+  const { setUser } = useContext(AuthContext);
   const scrollRef = React.useRef<ScrollView>(null);
 
   const handleLogin = async () => {
     setLoading(true);
+    setIsError(false);
+    setErrorMessage("");
+
     try {
       const data = await loginUserApi({ email, password });
 
+      console.log("DATA: ", data);
+
       if (!data?.user) {
-        setLoading(false);
-
-        if (!data?.user) return;
-
-        console.log("Logged in:", data.user.email);
-        setUser(data.user);
-
-        router.replace({
-          pathname: "auth/city-select",
-          params: { new: "true" },
-        });
+        setIsError(true);
+        setErrorMessage(t("userLogin.somethingWrong"));
+        return;
       }
+
+      setUser(data.user);
+
+      router.replace({
+        pathname: "/auth/city-select",
+        params: { new: "false" },
+      });
     } catch (err) {
       console.error("Login error:", err);
+      setIsError(true);
+      setErrorMessage(t("userLogin.somethingWrong"));
     } finally {
       setLoading(false);
     }

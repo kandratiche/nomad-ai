@@ -96,7 +96,6 @@ export default function VibeCheckScreen() {
 
   const handleContinue = async () => {
     if (selected.size === 0) return Alert.alert(t("vibeCheck.selectInterest"));
-    if (!user?.id) return Alert.alert(t("vibeCheck.userNotFound"));
     try {
       const updatedProfile = await updateUserApi({ interests: Array.from(selected) });
       if (!updatedProfile) throw new Error("Failed to update interests");
@@ -111,7 +110,7 @@ export default function VibeCheckScreen() {
   return (
     <LightScreen>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={() => router.push("/city-select")} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.push("/auth/city-select")} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color="#0F172A" />
         </TouchableOpacity>
 

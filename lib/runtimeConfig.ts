@@ -25,7 +25,7 @@ function trimTrailingSlash(value: string): string {
 
 export const runtimeConfig = {
   backendBaseUrl: trimTrailingSlash(readEnv("EXPO_PUBLIC_BACKEND_BASE_URL") || "http://10.0.2.2:8080"),
-  backendApiPrefix: readEnv("EXPO_PUBLIC_BACKEND_API_PREFIX") || "/api/v1",
+  backendApiPrefix: readEnv("EXPO_PUBLIC_BACKEND_API_PREFIX") || "/api",
   backendTimeoutMs: parseNumber(readEnv("EXPO_PUBLIC_BACKEND_TIMEOUT_MS"), 15_000),
   chatPollIntervalMs: parseNumber(readEnv("EXPO_PUBLIC_CHAT_POLL_INTERVAL_MS"), 4_000),
   useBackendApi: parseBoolean(readEnv("EXPO_PUBLIC_USE_BACKEND_API"), false),

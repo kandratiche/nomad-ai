@@ -1,6 +1,6 @@
 import { LightScreen } from "@/components/ui/LightScreen";
 import { router } from "expo-router";
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   View,
@@ -30,13 +30,7 @@ export default function UserRegister() {
   const [loading, setLoading] = React.useState(false);
   const scrollRef = React.useRef<ScrollView>(null);
 
-  const { user, setUser } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (user) {
-      router.replace("/home");
-    }
-  }, [user]);
+  const { setUser } = useContext(AuthContext);
 
   const handleRegister = async () => {
     setLoading(true);
@@ -50,6 +44,7 @@ export default function UserRegister() {
 
     if (!data) return;
     if (data.user) setUser(data.user);
+
 
     try {
       router.replace({

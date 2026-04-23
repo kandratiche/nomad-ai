@@ -33,65 +33,53 @@ const CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
 
 const [locateToast, setLocateToast] = useState<string | null>(null);
 
-// const handleLocateMe = async () => {
-//   try {
-//     const { status } = await Location.requestForegroundPermissionsAsync();
-//     if (status !== "granted") {
-//       return alert(t("citySelect.somethingWrong"));
-//     }
+  const handleLocateMe = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(t("citySelect.somethingWrong"));
+        return;
+      }
 
-//     const location = await Location.getCurrentPositionAsync({});
-//     const { latitude, longitude } = location.coords;
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
 
-//     let closest = CITIES[0].id;
-//     let minDist = Infinity;
+      let closest = CITIES[0].id;
+      let minDist = Infinity;
 
-//     for (const city of CITIES) {
-//       const coords = CITY_COORDS[city.id];
-//       if (!coords) continue;
-//       const dist = Math.sqrt(
-//         Math.pow(latitude - coords.latitude, 2) +
-//         Math.pow(longitude - coords.longitude, 2)
-//       );
-//       if (dist < minDist) {
-//         minDist = dist;
-//         closest = city.id;
-//       }
-//     }
+      for (const city of CITIES) {
+        const coords = CITY_COORDS[city.id];
+        if (!coords) continue;
+        const dist = Math.sqrt(
+          Math.pow(latitude - coords.latitude, 2) +
+          Math.pow(longitude - coords.longitude, 2),
+        );
+        if (dist < minDist) {
+          minDist = dist;
+          closest = city.id;
+        }
+      }
 
-//     setSelectedId(closest);
-//     setLocateToast(closest);
+      setSelectedId(closest);
+      setLocateToast(closest);
 
-//     // Сохраняем в базу
-//     if (!user?.id) return;
+      const updatedProfile = await updateUserApi({ home_city: closest });
+      if (updatedProfile) {
+        setUser(updatedProfile);
+      }
 
-//     const { data: updatedProfile, error } = await supabase
-//       .from("users")
-//       .update({ home_city: closest })
-//       .eq("id", user.id)
-//       .select()
-//       .single();
+      setTimeout(() => setLocateToast(null), 1500);
+    } catch (err) {
+      console.warn("Location error:", err);
+      Alert.alert(t("citySelect.somethingWrong"));
+    }
+  };
 
-//     if (error) throw error;
-//     if (updatedProfile) setUser(updatedProfile);
-
-//     // Через 1.5 сек убираем toast и переходим дальше
-//     setTimeout(() => {
-//       setLocateToast(null);
-//       if (isNew) {
-//         router.replace("/auth/vibe-check");
-//       } else {
-//         router.replace("/home");
-//       }
-//     }, 1500);
-//   } catch (err) {
-//     console.warn("Location error:", err);
-//     alert(t("citySelect.somethingWrong"));
-//   }
-// };
   const handleContinue = async () => {
-    if (!selectedId) return alert(t("citySelect.selectCity"));
-    if (!user?.id) return alert(t("citySelect.userNotFound"));
+    if (!selectedId) {
+      Alert.alert(t("citySelect.selectCity"));
+      return;
+    }
 
     try {
       const updatedProfile = await updateUserApi({ home_city: selectedId });
@@ -105,7 +93,7 @@ const [locateToast, setLocateToast] = useState<string | null>(null);
       }
     } catch (err: any) {
       console.error("Error updating city:", err);
-      alert(err.message || t("citySelect.somethingWrong"));
+      Alert.alert(err.message || t("citySelect.somethingWrong"));
     }
   };
 
@@ -137,8 +125,7 @@ const [locateToast, setLocateToast] = useState<string | null>(null);
           second={t("citySelect.titleSecond")}
           style={styles.title}
         />
-        <TouchableOpacity style={styles.locateButton}>
-        {/* onPress={handleLocateMe} */}
+        <TouchableOpacity style={styles.locateButton} onPress={handleLocateMe}>
           <Ionicons name="compass-outline" size={20} color="#2DD4BF" style={styles.locateIcon} />
           <Text style={styles.locateText}>{t("citySelect.locateMe")}</Text>
         </TouchableOpacity>

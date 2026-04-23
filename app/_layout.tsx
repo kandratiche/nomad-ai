@@ -1,7 +1,7 @@
 import "../global.css";
 import './i18n';
-import { useEffect } from "react";
-import { Stack } from "expo-router";
+import { useContext, useEffect } from "react";
+import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
@@ -23,7 +23,7 @@ import {
   Montserrat_700Bold,
   Montserrat_800ExtraBold,
 } from "@expo-google-fonts/montserrat";
-import { AuthProvider } from "@/context/authContext";
+import { AuthContext, AuthProvider } from "@/context/authContext";
 import { Provider as PaperProvider } from "react-native-paper";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -70,31 +70,45 @@ export default function RootLayout() {
             <View style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
               <AuthProvider>
                 <StatusBar style="dark" />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: "#F8FAFC" },
-                    animation: "fade",
-                  }}
-                >
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="timeline" />
-                  <Stack.Screen name="guide/[id]" />
-                  <Stack.Screen name="tour/[id]" />
-                  <Stack.Screen name="become-guide" />
-                  <Stack.Screen name="create-tour" />
-                  <Stack.Screen name="guide-dashboard" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="auth/login" />
-                  <Stack.Screen name="auth/register" />
-                  <Stack.Screen name="auth/city-select" />
-                  <Stack.Screen name="auth/vibe-check" />
-                </Stack>
+                <AppNavigation />
               </AuthProvider>
             </View>
           </PaperProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
+  );
+}
+
+function AppNavigation() {
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/home");
+    }
+  }, [user]);
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#F8FAFC" },
+        animation: "fade",
+      }}
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="timeline" />
+      <Stack.Screen name="guide/[id]" />
+      <Stack.Screen name="tour/[id]" />
+      <Stack.Screen name="become-guide" />
+      <Stack.Screen name="create-tour" />
+      <Stack.Screen name="guide-dashboard" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="auth/login" />
+      <Stack.Screen name="auth/register" />
+      <Stack.Screen name="auth/city-select" />
+      <Stack.Screen name="auth/vibe-check" />
+    </Stack>
   );
 }

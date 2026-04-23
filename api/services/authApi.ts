@@ -36,11 +36,65 @@ export interface IUpdateUser {
 }
 
 function pickAuthToken(payload: any): string | null {
-  return payload?.accessToken || payload?.token || payload?.jwt || null;
+  if (!payload || typeof payload !== "object") return null;
+  return (
+    payload?.accessToken ||
+    payload?.token ||
+    payload?.jwt ||
+    payload?.jwtToken ||
+    payload?.data?.accessToken ||
+    payload?.data?.token ||
+    payload?.data?.jwt ||
+    null
+  );
 }
 
 function pickUser(payload: any): any {
-  return payload?.user || payload?.profile || null;
+  return (
+    payload?.user ||
+    payload?.createdUser.user ||
+    payload?.profile ||
+    payload?.userDto ||
+    payload?.userDTO ||
+    payload?.account ||
+    payload?.me ||
+    payload?.data?.user ||
+    payload?.data?.profile ||
+    null
+  );
+}
+
+async function resolveAuthResult(payload: any, invalidMessageTitle: string): Promise<{ user: any; accessToken: string } | null> {
+  const accessToken = pickAuthToken(payload);
+  console.log("accessToken: ", accessToken);
+  if (!accessToken) {
+    Alert.alert(invalidMessageTitle, "Invalid backend auth response: token is missing");
+    console.log(11);
+    return null;
+  }
+
+  let profile = pickUser(payload);
+
+  console.log("Auth profile payload: ", profile);
+
+  await saveSession({ accessToken, user: profile || null });
+
+  if (!profile) {
+    try {
+      profile = await meApi();
+    } catch {
+      profile = null;
+    }
+  }
+
+  if (!profile) {
+    await clearSession();
+    Alert.alert(invalidMessageTitle, "Invalid backend auth response: user is missing");
+    return null;
+  }
+
+  await saveSession({ accessToken, user: profile });
+  return { user: profile, accessToken };
 }
 
 export async function registerUserApi(props: IRegisterUser) {
@@ -63,20 +117,8 @@ export async function registerUserApi(props: IRegisterUser) {
 
   try {
     const payload = await registerApi({ email, password, name });
-    const accessToken = pickAuthToken(payload);
-    const profile = pickUser(payload);
-
-    if (!accessToken || !profile) {
-      Alert.alert(t("userRegister.registrationFailed"), "Invalid backend auth response");
-      return null;
-    }
-
-    await saveSession({ accessToken, user: profile });
-
-    return {
-      user: profile,
-      accessToken,
-    };
+    console.log("payload: ", payload);
+    return resolveAuthResult(payload, t("userRegister.registrationFailed"));
   } catch (err: any) {
     console.error("Unexpected register error:", err);
     Alert.alert(t("userRegister.register"), err.message || t("userRegister.somethingWrong"));
@@ -94,16 +136,7 @@ export async function loginUserApi(props: ILoginUser) {
 
   try {
     const payload = await loginApi({ email, password });
-    const accessToken = pickAuthToken(payload);
-    const profile = pickUser(payload);
-
-    if (!accessToken || !profile) {
-      Alert.alert(t("userLogin.loginButton"), "Invalid backend auth response");
-      return null;
-    }
-
-    await saveSession({ accessToken, user: profile });
-    return { user: profile, accessToken };
+    return resolveAuthResult(payload, t("userLogin.loginButton"));
   } catch (err: any) {
     Alert.alert(t("userLogin.loginButton"), err.message || t("userLogin.somethingWrong"));
     return null;

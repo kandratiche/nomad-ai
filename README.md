@@ -1,4 +1,4 @@
-# Nomad AI – React Native Travel App
+# TravelMe – React Native Travel App
 
 A production-ready, cyberpunk-themed travel companion built with **React Native (Expo)** for Kazakhstan (Astana, Almaty, Aktau). Features AI-style itineraries, guide marketplace, safety tools, and glassmorphism UI.
 
@@ -70,7 +70,7 @@ Core routes expected by mobile app:
 ## Project structure
 
 ```
-nomad-ai/
+travel-me/
 ├── app/
 │   ├── _layout.tsx          # Root layout, fonts
 │   ├── index.tsx            # Welcome / auth
